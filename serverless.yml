@@ -44,7 +44,7 @@ functions:
       exclude:
         - "**"
       include:
-        - src/authentication/login.handler
+        - src/authentication/login.py
 
 resources:
   Resources:
