@@ -47,6 +47,29 @@ functions:
       include:
         - src/authentication/login.py
 
+  signup:
+    name: ${sls:stage}-sign-up
+    handler: src/authentication/signup.handler
+    events:
+      - http:
+          path: sign-up
+          method: post
+          integration: lambda-proxy
+          cors: true
+    role: arn:aws:iam::014183400304:role/lambda-user
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "cognito-idp:AdminAddUserToGroup"
+          - "cognito-idp:AdminDeleteUser"
+          - "cognito-idp:AdminConfirmSignUp"
+        Resource: arn:aws:cognito-idp:${self:custom.region}:${self:custom.account-id}:userpool/${self:custom.userpool-id}
+    package:
+      exclude:
+        - "**"
+      include:
+        - src/authentication/signup.py
+
 resources:
   Resources:
     MyUserPool:
@@ -120,3 +143,168 @@ resources:
                     - "cognito-idp:AdminInitiateAuth"
                   Resource:
                     - "*"
+
+    AdminRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: AdminRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+                Service:
+                  - "lambda.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
+                ForAnyValue:StringLike:
+                  "cognito-identity.amazonaws.com:amr": "Admin"
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - "lambda.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: "AdminCognitoPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "cognito-idp:*"
+                  Resource:
+                    - "*"
+          - PolicyName: "AdminLambdaInvokePolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "lambda:InvokeFunction"
+                  Resource:
+                    - arn:aws:lambda:${self:custom.region}:${self:custom.account-id}:function:${sls:stage}-test-lambda
+
+    DoctorRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: DoctorRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
+                ForAnyValue:StringLike:
+                  "cognito-identity.amazonaws.com:amr": "Doctor"
+        Policies:
+          # Add policies that allow the actions you want to allow for the Doctor group
+
+    NurseRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: NurseRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
+                ForAnyValue:StringLike:
+                  "cognito-identity.amazonaws.com:amr": "Nurse"
+        Policies:
+          # Add policies that allow the actions you want to allow for the Nurse group
+
+    HeadNurseRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: HeadNurseRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
+                ForAnyValue:StringLike:
+                  "cognito-identity.amazonaws.com:amr": "HeadNurse"
+        Policies:
+          # Add policies that allow the actions you want to allow for the Head Nurse group
+
+    ReceptionistRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: ReceptionistRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
+                ForAnyValue:StringLike:
+                  "cognito-identity.amazonaws.com:amr": "Receptionist"
+        Policies:
+          # Add policies that allow the actions you want to allow for the Receptionist group
+
+    AdminGroup:
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        GroupName: Admin
+        UserPoolId:
+          Ref: MyUserPool
+        RoleArn: !GetAtt [AdminRole, Arn]
+
+    DoctorGroup:
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        GroupName: Doctor
+        UserPoolId:
+          Ref: MyUserPool
+        RoleArn: !GetAtt [DoctorRole, Arn]
+
+    NurseGroup:
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        GroupName: Nurse
+        UserPoolId:
+          Ref: MyUserPool
+        RoleArn: !GetAtt [NurseRole, Arn]
+
+    HeadNurseGroup:
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        GroupName: HeadNurse
+        UserPoolId:
+          Ref: MyUserPool
+        RoleArn: !GetAtt [HeadNurseRole, Arn]
+
+    ReceptionistGroup:
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        GroupName: Receptionist
+        UserPoolId:
+          Ref: MyUserPool
+        RoleArn: !GetAtt [ReceptionistRole, Arn]
