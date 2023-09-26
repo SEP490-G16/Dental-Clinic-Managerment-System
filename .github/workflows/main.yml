@@ -62,7 +62,7 @@ jobs:
         run: npm install
 
       - name: Serverless Deploy
-        uses: dhollerbach/actions.serverless-with-python-requirements@master
+        uses: tuananh1905/actions.serverless-with-python-requirements@master
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
