@@ -23,8 +23,8 @@ provider:
   tracing:
     lambda: true
   environment:
-    USER_POOL_ID: "ap-southeast-1_VHlxORHB8"
-    CLIENT_ID: "294cp2c3br64lmdhbns9466scd"
+    USER_POOL_ID: "ap-southeast-1_mFSJmjfFb"
+    CLIENT_ID: "4ah7dhech707uc12tfnbua97s6"
 
 package:
   individually: true
