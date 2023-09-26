@@ -43,3 +43,53 @@ package:
     - package.json
     - package-lock.json
     - requirements.txt
+
+functions:
+  # Module authentication
+  login:
+    name: ${sls:stage}-login
+    handler: src/authentication/login.handler
+    role: ApiAccessRole
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+          integration: lambda-proxy
+    package:
+      exclude:
+        - "**"
+      include:
+        - src/authentication/login.handler
+
+resources:
+  Resources:
+    MyUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-${self:provider.stage}-userpool
+
+    ApiAccessRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: nguyen-tran-clinic-ApiAccessRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - "lambda.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: "ApiAccessPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "execute-api:Invoke"
+                    - "cognito-idp:AdminInitiateAuth"
+                  Resource:
+                    - "*"
