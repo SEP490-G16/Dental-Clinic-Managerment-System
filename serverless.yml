@@ -13,6 +13,31 @@ custom:
     dockerizePip: true
     layer: false
 
+  apiGatewayServiceProxies:
+    - cognitoIdp:
+        path: /login-vtl
+        method: post
+        action: AdminInitiateAuth
+        region: ${self:custom.region}
+        service: cognito-idp
+        role: arn:aws:iam::${self:custom.account-id}:role/ApiAccessRole
+        request:
+          parameters:
+            AuthFlow: "ADMIN_NO_SRP_AUTH"
+            ClientId: ${self:custom.client-id}
+            UserPoolId: ${self:custom.userpool-id}
+          template:
+            application/json: |
+              #set($inputRoot = $input.path('$'))
+              {
+                "AuthFlow": "ADMIN_NO_SRP_AUTH",
+                "ClientId": ${self:custom.client-id},
+                "UserPoolId": ${self:custom.userpool-id},
+                "AuthParameters": {
+                    "USERNAME": "$inputRoot.username",
+                    "PASSWORD": "$inputRoot.password"
+                }
+              }
 provider:
   name: aws
   runtime: python3.8
@@ -70,31 +95,6 @@ functions:
         - "**"
       include:
         - src/authentication/signup.py
-
-custom:
-  apiGatewayServiceProxies:
-    - cognitoIdp:
-        path: /login-vtl
-        method: post
-        action: AdminInitiateAuth
-        role: arn:aws:iam::${self:custom.account-id}:role/ApiAccessRole
-        request:
-          parameters:
-            AuthFlow: 'ADMIN_NO_SRP_AUTH'
-            ClientId: ${self:custom.client-id}
-            UserPoolId: ${self:custom.userpool-id}
-          template:
-            application/json: |
-              #set($inputRoot = $input.path('$'))
-              {
-                "AuthFlow": "ADMIN_NO_SRP_AUTH",
-                "ClientId": ${self:custom.client-id},
-                "UserPoolId": ${self:custom.userpool-id},
-                "AuthParameters": {
-                    "USERNAME": "$inputRoot.username",
-                    "PASSWORD": "$inputRoot.password"
-                }
-              }
 
 resources:
   Resources:
