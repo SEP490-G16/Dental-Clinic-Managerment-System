@@ -5,6 +5,7 @@ frameworkVersion: "3"
 custom:
   region: ap-southeast-1
   account-id: "014183400304"
+  userpool-id: "ap-southeast-1_aZafRDpVV"
   pythonRequirements:
     slim: true
     strip: true
@@ -52,6 +53,17 @@ resources:
       Type: AWS::Cognito::UserPool
       Properties:
         UserPoolName: ${self:service}-${self:provider.stage}-userpool
+
+    CognitoUserPoolAuthorizer:
+      Type: "AWS::ApiGateway::Authorizer"
+      Properties:
+        IdentitySource: "method.request.header.Authorization"
+        Name: "CognitoUserPoolAuthorizer"
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+        Type: "COGNITO_USER_POOLS"
+        ProviderARNs:
+          - arn:aws:cognito-idp:${self:custom.region}:${self:custom.account-id}:userpool/${self:custom.userpool-id}
 
     ApiGatewayDeployment:
       Type: "AWS::ApiGateway::Deployment"
