@@ -39,8 +39,8 @@ functions:
       - http:
           path: login
           method: post
-          cors: true
           integration: lambda-proxy
+          cors: true
     package:
       exclude:
         - "**"
