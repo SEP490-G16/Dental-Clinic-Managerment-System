@@ -53,6 +53,37 @@ resources:
       Properties:
         UserPoolName: ${self:service}-${self:provider.stage}-userpool
 
+    ApiGatewayDeployment:
+      Type: "AWS::ApiGateway::Deployment"
+      DependsOn: CognitoUserPoolAuthorizer
+      Properties:
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        Description: "Auto-deployed on #{AWS::AccountId}-#{AWS::StackName}-#{AWS::Region}"
+      Metadata:
+        Timestamp: "#{AWS::AccountId}-#{AWS::StackName}-#{AWS::Region}"
+
+    ApiGatewayStage:
+      Type: "AWS::ApiGateway::Stage"
+      Properties:
+        DeploymentId:
+          Ref: ApiGatewayDeployment
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        StageName: ${self:provider.stage}
+
+    MyUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:service}-${self:provider.stage}-userpool-client
+        UserPoolId:
+          Ref: MyUserPool
+        GenerateSecret: false
+        RefreshTokenValidity: 60 # 60 day for refresh token
+        AccessTokenValidity: 4 # 3 hour for access token
+        ExplicitAuthFlows:
+          - ADMIN_NO_SRP_AUTH
+
     ApiAccessRole:
       Type: "AWS::IAM::Role"
       Properties:
