@@ -16,11 +16,14 @@ provider:
   runtime: python3.8
   stage: dev
   region: ap-southeast-1
-  timeout: 5s
+  timeout: 5
   memorySize: 256
   architecture: x86_64
   tracing:
     lambda: true
+  environment:
+    USER_POOL_ID: "ap-southeast-1_VHlxORHB8"
+    CLIENT_ID: "294cp2c3br64lmdhbns9466scd"
 
 package:
   individually: true
