@@ -33,7 +33,7 @@ functions:
   login:
     name: ${sls:stage}-login
     handler: src/authentication/login.handler
-    role: dcms-ApiAccessRole
+    role: ${self:service}-ApiAccessRole
     events:
       - http:
           path: login
