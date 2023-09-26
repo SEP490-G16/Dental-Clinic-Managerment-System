@@ -38,6 +38,10 @@ custom:
                     "PASSWORD": "$inputRoot.password"
                 }
               }
+
+plugins:
+  - serverless-apigateway-service-proxy
+
 provider:
   name: aws
   runtime: python3.8
