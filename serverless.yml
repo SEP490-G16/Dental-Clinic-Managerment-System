@@ -33,7 +33,7 @@ functions:
   login:
     name: ${sls:stage}-login
     handler: src/authentication/login.handler
-    role: ApiAccessRole
+    role: dcms-ApiAccessRole
     events:
       - http:
           path: login
@@ -56,7 +56,7 @@ resources:
     ApiAccessRole:
       Type: "AWS::IAM::Role"
       Properties:
-        RoleName: nguyen-tran-clinic-ApiAccessRole
+        RoleName: ${self:service}-ApiAccessRole
         AssumeRolePolicyDocument:
           Version: "2012-10-17"
           Statement:
