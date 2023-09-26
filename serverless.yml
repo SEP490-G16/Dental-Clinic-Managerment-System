@@ -34,7 +34,7 @@ functions:
   login:
     name: ${sls:stage}-login
     handler: src/authentication/login.handler
-    role: ${self:service}-ApiAccessRole
+    role: ApiAccessRole
     events:
       - http:
           path: login
@@ -99,7 +99,7 @@ resources:
     ApiAccessRole:
       Type: "AWS::IAM::Role"
       Properties:
-        RoleName: ${self:service}-ApiAccessRole
+        RoleName: ApiAccessRole
         AssumeRolePolicyDocument:
           Version: "2012-10-17"
           Statement:
