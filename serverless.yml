@@ -5,7 +5,7 @@ frameworkVersion: "3"
 custom:
   region: ap-southeast-1
   account-id: "014183400304"
-  userpool-id: "ap-southeast-1_aZafRDpVV"
+  userpool-id: "ap-southeast-1_mFSJmjfFb"
   pythonRequirements:
     slim: true
     strip: true
