@@ -6,6 +6,7 @@ custom:
   region: ap-southeast-1
   account-id: "014183400304"
   userpool-id: "ap-southeast-1_mFSJmjfFb"
+  client-id: "4ah7dhech707uc12tfnbua97s6"
   pythonRequirements:
     slim: true
     strip: true
@@ -69,6 +70,31 @@ functions:
         - "**"
       include:
         - src/authentication/signup.py
+
+custom:
+  apiGatewayServiceProxies:
+    - cognitoIdp:
+        path: /login-vtl
+        method: post
+        action: AdminInitiateAuth
+        role: arn:aws:iam::${self:custom.account-id}:role/ApiAccessRole
+        request:
+          parameters:
+            AuthFlow: 'ADMIN_NO_SRP_AUTH'
+            ClientId: ${self:custom.client-id}
+            UserPoolId: ${self:custom.userpool-id}
+          template:
+            application/json: |
+              #set($inputRoot = $input.path('$'))
+              {
+                "AuthFlow": "ADMIN_NO_SRP_AUTH",
+                "ClientId": ${self:custom.client-id},
+                "UserPoolId": ${self:custom.userpool-id},
+                "AuthParameters": {
+                    "USERNAME": "$inputRoot.username",
+                    "PASSWORD": "$inputRoot.password"
+                }
+              }
 
 resources:
   Resources:
