@@ -32,10 +32,10 @@ custom:
         method: get
         tableName: "nguyen-tran-clinic"
         hashKey:
-          queryStringParam: id # use query string parameter
+          queryStringParam: PK # use query string parameter
           attributeType: S
         rangeKey:
-          queryStringParam: sort
+          queryStringParam: SK
           attributeType: S
         action: GetItem
         cors: true
