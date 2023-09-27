@@ -13,34 +13,31 @@ custom:
     dockerizePip: true
     layer: false
 
-  apiGatewayServiceProxies:
-    - sqs:
-        path: /login-vtl
-        method: post
-        action: AdminInitiateAuth
-        region: ${self:custom.region}
-        service: cognito-idp
-        role: arn:aws:iam::${self:custom.account-id}:role/ApiAccessRole
-        request:
-          parameters:
-            AuthFlow: "ADMIN_NO_SRP_AUTH"
-            ClientId: ${self:custom.client-id}
-            UserPoolId: ${self:custom.userpool-id}
-          template:
-            application/json: |
-              #set($inputRoot = $input.path('$'))
-              {
-                "AuthFlow": "ADMIN_NO_SRP_AUTH",
-                "ClientId": ${self:custom.client-id},
-                "UserPoolId": ${self:custom.userpool-id},
-                "AuthParameters": {
-                    "USERNAME": "$inputRoot.username",
-                    "PASSWORD": "$inputRoot.password"
-                }
-              }
-
-plugins:
-  - serverless-apigateway-service-proxy
+  # apiGatewayServiceProxies:
+  #   - sqs:
+  #       path: /login-vtl
+  #       method: post
+  #       action: AdminInitiateAuth
+  #       region: ${self:custom.region}
+  #       service: cognito-idp
+  #       role: arn:aws:iam::${self:custom.account-id}:role/ApiAccessRole
+  #       request:
+  #         parameters:
+  #           AuthFlow: "ADMIN_NO_SRP_AUTH"
+  #           ClientId: ${self:custom.client-id}
+  #           UserPoolId: ${self:custom.userpool-id}
+  #         template:
+  #           application/json: |
+  #             #set($inputRoot = $input.path('$'))
+  #             {
+  #               "AuthFlow": "ADMIN_NO_SRP_AUTH",
+  #               "ClientId": ${self:custom.client-id},
+  #               "UserPoolId": ${self:custom.userpool-id},
+  #               "AuthParameters": {
+  #                   "USERNAME": "$inputRoot.username",
+  #                   "PASSWORD": "$inputRoot.password"
+  #               }
+  #             }
 
 provider:
   name: aws
@@ -99,6 +96,18 @@ functions:
         - "**"
       include:
         - src/authentication/signup.py
+
+cognitoProxy:
+  handler: handler.functionHandler # Handler này sẽ không được gọi
+  events:
+    - cognitoIdp:
+        path: /cognito
+        method: post
+        cognitoIdpAction: "InitiateAuth" # Thay đổi hành động này dựa trên yêu cầu của bạn
+        userPoolId:
+          Ref: YourUserPoolId # Tham chiếu đến User Pool ID của bạn
+        clientId:
+          Ref: YourUserPoolClientId # Tham chiếu đến User Pool Client ID của bạn
 
 resources:
   Resources:
