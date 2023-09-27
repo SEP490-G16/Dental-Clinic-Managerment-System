@@ -13,7 +13,23 @@ custom:
     dockerizePip: true
     layer: false
 
-  # apiGatewayServiceProxies:
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /queue
+        method: post
+        queueName: !GetAtt MyQueue.QueueName
+        cors: true
+        response:
+          template:
+            # `success` is used when the integration response is 200
+            success: |-
+              { "message: "accepted" }
+            # `clientError` is used when the integration response is 400
+            clientError: |-
+              { "message": "there is an error in your request" }
+            # `serverError` is used when the integration response is 500
+            serverError: |-
+              { "message": "there was an error handling your request" }
   #   - sqs:
   #       path: /login-vtl
   #       method: post
@@ -97,17 +113,17 @@ functions:
       include:
         - src/authentication/signup.py
 
-cognitoProxy:
-  handler: handler.functionHandler # Handler này sẽ không được gọi
-  events:
-    - cognitoIdp:
-        path: /cognito
-        method: post
-        cognitoIdpAction: "InitiateAuth" # Thay đổi hành động này dựa trên yêu cầu của bạn
-        userPoolId:
-          Ref: YourUserPoolId # Tham chiếu đến User Pool ID của bạn
-        clientId:
-          Ref: YourUserPoolClientId # Tham chiếu đến User Pool Client ID của bạn
+# cognitoProxy:
+#   handler: handler.functionHandler # Handler này sẽ không được gọi
+#   events:
+#     - cognitoIdp:
+#         path: /cognito
+#         method: post
+#         cognitoIdpAction: "InitiateAuth" # Thay đổi hành động này dựa trên yêu cầu của bạn
+#         userPoolId:
+#           Ref: YourUserPoolId # Tham chiếu đến User Pool ID của bạn
+#         clientId:
+#           Ref: YourUserPoolClientId # Tham chiếu đến User Pool Client ID của bạn
 
 resources:
   Resources:
