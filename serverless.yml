@@ -13,6 +13,33 @@ custom:
     dockerizePip: true
     layer: false
 
+  apiGatewayServiceProxies:
+    - dynamodb:
+      path: /customer/{id}
+      method: get
+      tableName: { Ref: "nguyen-tran-clinic" }
+      hashKey:
+        pathParam: id
+        attributeType: S
+      rangeKey:
+        pathParam: id
+        attributeType: S
+      action: GetItem
+      cors: true
+
+    - dynamodb:
+        path: /dynamodb
+        method: get
+        tableName: { Ref: "nguyen-tran-clinic" }
+        hashKey:
+          queryStringParam: id # use query string parameter
+          attributeType: S
+        rangeKey:
+          queryStringParam: sort
+          attributeType: S
+        action: GetItem
+        cors: true
+
 provider:
   name: aws
   runtime: python3.8
