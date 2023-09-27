@@ -14,7 +14,7 @@ custom:
     layer: false
 
   apiGatewayServiceProxies:
-    - cognitoIdp:
+    - sqs:
         path: /login-vtl
         method: post
         action: AdminInitiateAuth
