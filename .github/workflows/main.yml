@@ -10,7 +10,7 @@ jobs:
     name: deploy
     runs-on: ubuntu-latest
     env:
-      NODE_VERSION: 16
+      NODE_VERSION: 14.X
     strategy:
       matrix:
         python-version:
