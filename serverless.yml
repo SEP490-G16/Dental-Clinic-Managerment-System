@@ -15,7 +15,7 @@ custom:
 
   apiGatewayServiceProxies:
     - dynamodb:
-        path: /customer/{id}
+        path: /customer/{id}/{id}
         method: get
         tableName: "nguyen-tran-clinic"
         hashKey:
@@ -35,7 +35,7 @@ custom:
           queryStringParam: PK # use query string parameter
           attributeType: S
         rangeKey:
-          queryStringParam: PK
+          queryStringParam: SK
           attributeType: S
         action: GetItem
         cors: true
