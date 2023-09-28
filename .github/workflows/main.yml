@@ -64,14 +64,13 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --select=E9,F63,F7,F82,I2 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   pytest:
+    needs: setup_and_dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -86,6 +85,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - uses: actions/checkout@v2
 
       - name: Run tests with pytest
         run: pytest
