@@ -102,6 +102,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -125,7 +127,7 @@ jobs:
           # Override the default behavior so that the action doesn't attempt
           # to auto-install Python dependencies
           setup-python-dependencies: false
-          
+
       - name: Perform CodeQL Scan
         uses: github/codeql-action/analyze@v1
 
