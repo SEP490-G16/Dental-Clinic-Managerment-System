@@ -11,15 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_VERSION: 14.X
-    with:
-      python-version: 3.8
+      PYTHON_VERSION: 3.8
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v1
