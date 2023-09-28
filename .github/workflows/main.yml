@@ -109,7 +109,7 @@ jobs:
         uses: github/codeql-action/analyze@v1
 
   deploy:
-    needs: [lint, pytest]
+    needs: [lint, pytest, security_scans]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
