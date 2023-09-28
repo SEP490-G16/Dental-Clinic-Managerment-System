@@ -11,10 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_VERSION: 14.X
-    strategy:
-      matrix:
-        python-version:
-          - 3.8
+    with:
+      python-version: 3.8
     steps:
       - uses: actions/checkout@v2
 
@@ -43,6 +41,7 @@ jobs:
 
   lint:
     needs: setup_and_dependencies
+    name: "Test: Lint"
     runs-on: ubuntu-latest
     steps:
       - name: Cache pip
@@ -69,6 +68,7 @@ jobs:
 
   pytest:
     needs: setup_and_dependencies
+    name: "Test: Pytest"
     runs-on: ubuntu-latest
     steps:
       - name: Cache pip
