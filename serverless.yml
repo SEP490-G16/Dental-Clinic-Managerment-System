@@ -51,8 +51,8 @@ provider:
   tracing:
     lambda: true
   environment:
-    USER_POOL_ID: {self:custom.userpool-id}
-    CLIENT_ID: {self:custom.client-id}
+    USER_POOL_ID: ${self:custom.userpool-id}
+    CLIENT_ID: ${self:custom.client-id}
 
 package:
   individually: true
