@@ -40,6 +40,9 @@ custom:
         action: GetItem
         cors: true
 
+plugins:
+  - serverless-apigateway-service-proxy
+
 provider:
   name: aws
   runtime: python3.8
