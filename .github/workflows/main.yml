@@ -123,12 +123,11 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        with:
           languages: python
           # Override the default behavior so that the action doesn't attempt
           # to auto-install Python dependencies
           setup-python-dependencies: false
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Perform CodeQL Scan
         uses: github/codeql-action/analyze@v1
