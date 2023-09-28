@@ -89,6 +89,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Run tests with pytest
+        if: steps.check_tests.outputs.has_tests == 'true'
         run: pytest
 
   deploy:
