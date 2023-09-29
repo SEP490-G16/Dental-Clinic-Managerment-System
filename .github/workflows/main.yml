@@ -106,6 +106,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
 
   deploy:
+    name: "Deploy to AWS"
     needs: [lint, pytest, sonarqube]
     runs-on: ubuntu-latest
     steps:

@@ -28,6 +28,16 @@ custom:
         cors: true
 
     - dynamodb:
+        path: /customer/{PK}
+        method: get
+        tableName: "nguyen-tran-clinic"
+        hashKey:
+          pathParam: PK
+          attributeType: S
+        action: GetItem
+        cors: true
+
+    - dynamodb:
         path: /dynamodb
         method: get
         tableName: "nguyen-tran-clinic"
