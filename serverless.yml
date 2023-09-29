@@ -34,7 +34,7 @@ custom:
         hashKey:
           pathParam: PK
           attributeType: S
-        action: GetItem
+        action: Query
         cors: true
 
     - dynamodb:
