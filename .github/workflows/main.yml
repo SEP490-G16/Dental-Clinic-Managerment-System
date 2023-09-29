@@ -147,9 +147,11 @@ jobs:
       with:
         host: ${{ secrets.SONARQUBE_HOST }}
         login: ${{ secrets.SONARQUBE_TOKEN }}
+      env:
+        SONAR_ORG: ${{ secrets.SONARQUBE_ORG }}
 
   deploy:
-    needs: [lint, pytest, security_scans]
+    needs: [lint, pytest, security_scans, sonarqube]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
