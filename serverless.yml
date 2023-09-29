@@ -31,11 +31,13 @@ custom:
         path: /customer/{PK}
         method: get
         tableName: "nguyen-tran-clinic"
-        hashKey:
-          pathParam: PK
-          attributeType: S
         action: Query
         cors: true
+        request:
+          keyConditionExpression: "PK = :value"
+          expressionAttributeValues:
+            ":value":
+              pathParam: PK
 
     - dynamodb:
         path: /dynamodb
