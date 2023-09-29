@@ -147,8 +147,9 @@ jobs:
       with:
         host: ${{ secrets.SONARQUBE_HOST }}
         login: ${{ secrets.SONARQUBE_TOKEN }}
-        args:
-          -Dsonar.organization=${{ secrets.SONARQUBE_ORG }}
+        organization: ${{ secrets.SONARQUBE_ORG }}
+        # args:
+        #   -Dsonar.organization=${{ secrets.SONARQUBE_ORG }}
 
   deploy:
     needs: [lint, pytest, security_scans, sonarqube]
