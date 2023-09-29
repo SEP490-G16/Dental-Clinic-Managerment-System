@@ -132,6 +132,22 @@ jobs:
       - name: Perform CodeQL Scan
         uses: github/codeql-action/analyze@v1
 
+  sonarqube:
+    needs: setup_and_dependencies
+    name: "Security Scans with SonarQube"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checking out
+      uses: actions/checkout@master
+      with:
+        # Disabling shallow clone is recommended for improving relevancy of reporting
+        fetch-depth: 0
+    - name: SonarQube Scan
+      uses: kitabisa/sonarqube-action@v1.2.0
+      with:
+        host: ${{ secrets.SONARQUBE_HOST }}
+        login: ${{ secrets.SONARQUBE_TOKEN }}
+
   deploy:
     needs: [lint, pytest, security_scans]
     runs-on: ubuntu-latest
