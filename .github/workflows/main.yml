@@ -148,7 +148,6 @@ jobs:
         host: ${{ secrets.SONARQUBE_HOST }}
         login: ${{ secrets.SONARQUBE_TOKEN }}
         args:
-          -Dsonar.projectKey=<sonar_project_key>
           -Dsonar.organization=${{ secrets.SONARQUBE_ORG }}
 
   deploy:
