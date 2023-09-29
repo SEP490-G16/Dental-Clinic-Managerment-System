@@ -147,7 +147,7 @@ jobs:
       with:
         host: ${{ secrets.SONARQUBE_HOST }}
         login: ${{ secrets.SONARQUBE_TOKEN }}
-        args:
+        args: >
           -Dsonar.organization=${{ secrets.SONARQUBE_ORG }}
           -X
 
