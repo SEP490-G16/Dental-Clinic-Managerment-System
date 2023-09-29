@@ -145,11 +145,14 @@ jobs:
     - name: SonarQube Scan
       uses: sonarsource/sonarcloud-github-action@master
       with:
-        host: ${{ secrets.SONARQUBE_HOST }}
-        login: ${{ secrets.SONARQUBE_TOKEN }}
+        # host: ${{ secrets.SONARQUBE_HOST }}
+        # login: ${{ secrets.SONARQUBE_TOKEN }}
         args: >
           -Dsonar.organization=${{ secrets.SONARQUBE_ORG }}
           -X
+      env:
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
 
   deploy:
     needs: [lint, pytest, sonarqube]
