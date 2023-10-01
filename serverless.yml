@@ -27,17 +27,17 @@ custom:
         action: GetItem
         cors: true
 
-    - dynamodb:
-        path: /customer/{PK}
-        method: get
-        tableName: "nguyen-tran-clinic"
-        action: Query
-        cors: true
-        request:
-          keyConditionExpression: "PK = :value"
-          expressionAttributeValues:
-            ":value":
-              pathParam: PK
+    # - dynamodb:
+    #     path: /customer/{PK}
+    #     method: get
+    #     tableName: "nguyen-tran-clinic"
+    #     action: GetItem
+    #     cors: true
+    #     request:
+    #       keyConditionExpression: "PK = :value"
+    #       expressionAttributeValues:
+    #         ":value":
+    #           pathParam: PK
 
     - dynamodb:
         path: /dynamodb
