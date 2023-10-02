@@ -412,7 +412,10 @@ resources:
                   Properties:
                     Name: api-music
                     ApiKeySourceType: HEADER
-                ParentId: Fn::GetAtt: [Api, "RootResourceId"]
+                ParentId: 
+                  Fn::GetAtt: 
+                    - Api 
+                    - RootResourceId
               PathPart: 'music'
             PathPart: '{artist}'
         HttpMethod: GET
