@@ -1,393 +1,77 @@
-service: dental-clinic-managerment-system
+service: apigw-rest-api-dynamodb-sls
+frameworkVersion: '^3' # require serverless v3 or later
 
-frameworkVersion: "3"
-
-custom:
-  region: ap-southeast-1
-  account-id: "014183400304"
-  userpool-id: "ap-southeast-1_mFSJmjfFb"
-  client-id: "vm01gdalvfa01cj5q948t8v3v"
-  pythonRequirements:
-    slim: true
-    strip: true
-    dockerizePip: true
-    layer: false
-  urlDecode: ${file(./src/urlDecodeTmpl.yml)}
-  # query string
-  idFromParams: '"id": "$input.params("id")"'
-  nameFromParams: '"name": "$input.params("name")"'
-  # json body
-  idFromJson: '"id": $input.json("$.id")'
-  nameFromJson: '"name": $input.json("$.name")'
-
-  apiGatewayServiceProxies:
-    - dynamodb:
-        path: /customer/{PK}/{SK}
-        method: get
-        tableName: "nguyen-tran-clinic"
-        hashKey:
-          pathParam: PK
-          attributeType: S
-        rangeKey:
-          pathParam: SK
-          attributeType: S
-        action: GetItem
-        cors: true
-
-    # - dynamodb:
-    #     path: /customer/{PK}
-    #     method: get
-    #     tableName: "nguyen-tran-clinic"
-    #     action: GetItem
-    #     cors: true
-    #     request:
-    #       keyConditionExpression: "PK = :value"
-    #       expressionAttributeValues:
-    #         ":value":
-    #           pathParam: PK
-
-    - dynamodb:
-        path: /dynamodb
-        method: get
-        tableName: "nguyen-tran-clinic"
-        hashKey:
-          queryStringParam: pk # use query string parameter
-          attributeType: S
-        rangeKey:
-          queryStringParam: sk
-          attributeType: S
-        action: GetItem
-        cors: true
-
-plugins:
-  - serverless-apigateway-service-proxy
+params:
+  default:
+    AppName: api-music
 
 provider:
   name: aws
-  runtime: python3.8
-  stage: dev
-  region: ap-southeast-1
-  timeout: 5
-  memorySize: 256
-  architecture: x86_64
-  tracing:
-    lambda: true
-  environment:
-    USER_POOL_ID: ${self:custom.userpool-id}
-    CLIENT_ID: ${self:custom.client-id}
 
-package:
-  individually: true
+  # override the default stage (dev)
+  stage: ${opt:stage, "v1"}
 
-functions:
-  # Module authentication
-  login:
-    name: ${sls:stage}-login
-    handler: src/authentication/login.handler
-    role: ApiAccessRole
-    events:
-      - http:
-          path: login
-          method: post
-          integration: lambda-proxy
-          cors: true
-    package:
-      exclude:
-        - "**"
-      include:
-        - src/authentication/login.py
-
-  signup:
-    name: ${sls:stage}-sign-up
-    handler: src/authentication/signup.handler
-    events:
-      - http:
-          path: sign-up
-          method: post
-          integration: lambda-proxy
-          cors: true
-    role: arn:aws:iam::014183400304:role/lambda-user
-    iamRoleStatements:
-      - Effect: "Allow"
-        Action:
-          - "cognito-idp:AdminAddUserToGroup"
-          - "cognito-idp:AdminDeleteUser"
-          - "cognito-idp:AdminConfirmSignUp"
-        Resource: arn:aws:cognito-idp:${self:custom.region}:${self:custom.account-id}:userpool/${self:custom.userpool-id}
-    package:
-      exclude:
-        - "**"
-      include:
-        - src/authentication/signup.py
-
-  getHello:
-    handler: handler.hello
-    events:
-      - http:
-          path: /hello
-          method: get
-          integration: lambda
-          request:
-            template:
-              application/json: '{
-                ${self:custom.idFromParams},
-                ${self:custom.nameFromParams}
-              }'
-  postHello:
-    handler: handler.hello
-    events:
-      - http:
-          path: /hello
-          method: post
-          integration: lambda
-          request:
-            template:
-              application/x-www-form-urlencoded: ${self:custom.urlDecode}
-              application/json: '{
-                ${self:custom.idFromJson},
-                ${self:custom.nameFromJson}
-              }'
+  # use --region option value or the default - us-east-1
+  region: ${opt:region, "us-east-1"}
 
 resources:
+  # Override the default description
+  Description: An Amazon API Gateway REST API that integrates with an Amazon DynamoDB table (Serverless Framework).
+
   Resources:
-    MyUserPool:
-      Type: AWS::Cognito::UserPool
+    DynamoDBTable:
+      Type: 'AWS::DynamoDB::Table'
       Properties:
-        UserPoolName: ${self:service}-${self:provider.stage}-userpool
-
-    CognitoUserPoolAuthorizer:
-      Type: "AWS::ApiGateway::Authorizer"
+        TableName: Music
+        # A list of attributes that describe the key schema for the DynamoDB table and indexes.
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: artist
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        GlobalSecondaryIndexes:
+          - IndexName: Artist-Index
+            KeySchema:
+              - AttributeName: artist
+                KeyType: HASH
+            Projection:
+              ProjectionType: INCLUDE
+              NonKeyAttributes:
+                - album
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+    APIGatewayRole:
+      Type: 'AWS::IAM::Role'
       Properties:
-        IdentitySource: "method.request.header.Authorization"
-        Name: "CognitoUserPoolAuthorizer"
-        RestApiId:
-          Ref: "ApiGatewayRestApi"
-        Type: "COGNITO_USER_POOLS"
-        ProviderARNs:
-          - arn:aws:cognito-idp:${self:custom.region}:${self:custom.account-id}:userpool/${self:custom.userpool-id}
-
-    ApiGatewayDeployment:
-      Type: "AWS::ApiGateway::Deployment"
-      DependsOn: CognitoUserPoolAuthorizer
-      Properties:
-        RestApiId:
-          Ref: ApiGatewayRestApi
-        Description: "Auto-deployed on #{AWS::AccountId}-#{AWS::StackName}-#{AWS::Region}"
-      Metadata:
-        Timestamp: "#{AWS::AccountId}-#{AWS::StackName}-#{AWS::Region}"
-
-    ApiGatewayStage:
-      Type: "AWS::ApiGateway::Stage"
-      Properties:
-        DeploymentId:
-          Ref: ApiGatewayDeployment
-        RestApiId:
-          Ref: ApiGatewayRestApi
-        StageName: ${self:provider.stage}
-
-    MyUserPoolClient:
-      Type: AWS::Cognito::UserPoolClient
-      Properties:
-        ClientName: ${self:service}-${self:provider.stage}-userpool-client
-        UserPoolId:
-          Ref: MyUserPool
-        GenerateSecret: false
-        RefreshTokenValidity: 60 # 60 day for refresh token
-        AccessTokenValidity: 4 # 3 hour for access token
-        ExplicitAuthFlows:
-          - ADMIN_NO_SRP_AUTH
-
-    ApiAccessRole:
-      Type: "AWS::IAM::Role"
-      Properties:
-        RoleName: ApiAccessRole
         AssumeRolePolicyDocument:
-          Version: "2012-10-17"
+          Version: '2012-10-17'
           Statement:
-            - Effect: "Allow"
+            - Action:
+                - 'sts:AssumeRole'
+              Effect: Allow
               Principal:
                 Service:
-                  - "lambda.amazonaws.com"
-                  - "apigateway.amazonaws.com"
-              Action:
-                - "sts:AssumeRole"
+                  - apigateway.amazonaws.com
         Policies:
-          - PolicyName: "ApiAccessPolicy"
+          - PolicyName: APIGatewayDynamoDBPolicy
             PolicyDocument:
-              Version: "2012-10-17"
+              Version: '2012-10-17'
               Statement:
-                - Effect: "Allow"
+                - Effect: Allow
                   Action:
-                    - "execute-api:Invoke"
-                    - "cognito-idp:AdminInitiateAuth"
-                  Resource:
-                    - "*"
-
-    AdminRole:
-      Type: "AWS::IAM::Role"
-      Properties:
-        RoleName: AdminRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Principal:
-                Federated: "cognito-identity.amazonaws.com"
-                Service:
-                  - "lambda.amazonaws.com"
-              Action:
-                - "sts:AssumeRoleWithWebIdentity"
-              Condition:
-                StringEquals:
-                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
-                ForAnyValue:StringLike:
-                  "cognito-identity.amazonaws.com:amr": "Admin"
-            - Effect: "Allow"
-              Principal:
-                Service:
-                  - "lambda.amazonaws.com"
-              Action:
-                - "sts:AssumeRole"
-        Policies:
-          - PolicyName: "AdminCognitoPolicy"
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: "Allow"
-                  Action:
-                    - "cognito-idp:*"
-                  Resource:
-                    - "*"
-          - PolicyName: "AdminLambdaInvokePolicy"
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: "Allow"
-                  Action:
-                    - "lambda:InvokeFunction"
-                  Resource:
-                    - arn:aws:lambda:${self:custom.region}:${self:custom.account-id}:function:${sls:stage}-test-lambda
-
-    DoctorRole:
-      Type: "AWS::IAM::Role"
-      Properties:
-        RoleName: DoctorRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Principal:
-                Federated: "cognito-identity.amazonaws.com"
-              Action:
-                - "sts:AssumeRoleWithWebIdentity"
-              Condition:
-                StringEquals:
-                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
-                ForAnyValue:StringLike:
-                  "cognito-identity.amazonaws.com:amr": "Doctor"
-        Policies:
-          # Add policies that allow the actions you want to allow for the Doctor group
-
-    NurseRole:
-      Type: "AWS::IAM::Role"
-      Properties:
-        RoleName: NurseRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Principal:
-                Federated: "cognito-identity.amazonaws.com"
-              Action:
-                - "sts:AssumeRoleWithWebIdentity"
-              Condition:
-                StringEquals:
-                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
-                ForAnyValue:StringLike:
-                  "cognito-identity.amazonaws.com:amr": "Nurse"
-        Policies:
-          # Add policies that allow the actions you want to allow for the Nurse group
-
-    HeadNurseRole:
-      Type: "AWS::IAM::Role"
-      Properties:
-        RoleName: HeadNurseRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Principal:
-                Federated: "cognito-identity.amazonaws.com"
-              Action:
-                - "sts:AssumeRoleWithWebIdentity"
-              Condition:
-                StringEquals:
-                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
-                ForAnyValue:StringLike:
-                  "cognito-identity.amazonaws.com:amr": "HeadNurse"
-        Policies:
-          # Add policies that allow the actions you want to allow for the Head Nurse group
-
-    ReceptionistRole:
-      Type: "AWS::IAM::Role"
-      Properties:
-        RoleName: ReceptionistRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Principal:
-                Federated: "cognito-identity.amazonaws.com"
-              Action:
-                - "sts:AssumeRoleWithWebIdentity"
-              Condition:
-                StringEquals:
-                  "cognito-identity.amazonaws.com:aud": !Ref MyUserPool
-                ForAnyValue:StringLike:
-                  "cognito-identity.amazonaws.com:amr": "Receptionist"
-        Policies:
-          # Add policies that allow the actions you want to allow for the Receptionist group
-
-    AdminGroup:
-      Type: AWS::Cognito::UserPoolGroup
-      Properties:
-        GroupName: Admin
-        UserPoolId:
-          Ref: MyUserPool
-        RoleArn: !GetAtt [AdminRole, Arn]
-
-    DoctorGroup:
-      Type: AWS::Cognito::UserPoolGroup
-      Properties:
-        GroupName: Doctor
-        UserPoolId:
-          Ref: MyUserPool
-        RoleArn: !GetAtt [DoctorRole, Arn]
-
-    NurseGroup:
-      Type: AWS::Cognito::UserPoolGroup
-      Properties:
-        GroupName: Nurse
-        UserPoolId:
-          Ref: MyUserPool
-        RoleArn: !GetAtt [NurseRole, Arn]
-
-    HeadNurseGroup:
-      Type: AWS::Cognito::UserPoolGroup
-      Properties:
-        GroupName: HeadNurse
-        UserPoolId:
-          Ref: MyUserPool
-        RoleArn: !GetAtt [HeadNurseRole, Arn]
-
-    ReceptionistGroup:
-      Type: AWS::Cognito::UserPoolGroup
-      Properties:
-        GroupName: Receptionist
-        UserPoolId:
-          Ref: MyUserPool
-        RoleArn: !GetAtt [ReceptionistRole, Arn]
-
+                    - 'dynamodb:PutItem'
+                    - 'dynamodb:Query'
+                  # Including * in the resource Arn allows access to the DynamoDB table and indexes
+                  Resource: !Sub
+                    - '${varTableArn}*'
+                    - varTableArn: !GetAtt DynamoDBTable.Arn
     Api:
       Type: 'AWS::ApiGateway::RestApi'
       Properties:
@@ -470,3 +154,47 @@ resources:
                 application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"music\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"id\": \"$field.id.S\",\n\t\t\t\"artist\": \"$field.artist.S\",\n\t\t\t\"album\": \"$field.album.S\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
         MethodResponses:
           - StatusCode: '200'
+    ApiDeployment:
+      Type: 'AWS::ApiGateway::Deployment'
+      DependsOn:
+        - MusicArtistMethodGet
+      Properties:
+        RestApiId: !Ref Api
+        StageName: ${self:provider.stage}
+    ApiKey:
+      Type: 'AWS::ApiGateway::ApiKey'
+      DependsOn:
+        - ApiDeployment
+      Properties:
+        Enabled: true
+        Name: ${param:AppName}-apikey
+        StageKeys:
+          - RestApiId: !Ref Api
+            StageName: ${self:provider.stage}
+    ApiUsagePlan:
+      Type: 'AWS::ApiGateway::UsagePlan'
+      DependsOn:
+        - ApiDeployment
+      Properties:
+        ApiStages:
+          - ApiId: !Ref Api
+            Stage: ${self:provider.stage}
+        Throttle:
+          RateLimit: 500
+          BurstLimit: 1000
+        UsagePlanName: ${param:AppName}-usage-plan
+        Quota:
+          Limit: 10000
+          Period: MONTH
+    ApiUsagePlanKey:
+      Type: 'AWS::ApiGateway::UsagePlanKey'
+      Properties:
+        KeyType: API_KEY
+        KeyId: !Ref ApiKey
+        UsagePlanId: !Ref ApiUsagePlan
+  Outputs:
+    ApiRootUrl:
+      Description: Root Url of the API
+      Value: !Sub 
+        - 'https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
+        - ApiId: !Ref Api
