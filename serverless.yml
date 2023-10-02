@@ -387,3 +387,62 @@ resources:
         UserPoolId:
           Ref: MyUserPool
         RoleArn: !GetAtt [ReceptionistRole, Arn]
+
+    UserMethodGet:
+      Type: 'AWS::ApiGateway::Method'
+      Properties: 
+        ResApiId:
+          Type: 'AWS::ApiGateway::RestApi'
+          Properties:
+            Name: api-music
+            ApiKeySourceType: HEADER
+        ResourceId:
+          Type: 'AWS::ApiGateway::Resource'
+          Properties:
+            RestApiId:
+              Type: 'AWS::ApiGateway::RestApi'
+              Properties:
+                Name: api-music
+                ApiKeySourceType: HEADER
+            ParentId: 
+              Type: 'AWS::ApiGateway::Resource'
+              Properties:
+                RestApiId: 
+                  Type: 'AWS::ApiGateway::RestApi'
+                  Properties:
+                    Name: api-music
+                    ApiKeySourceType: HEADER
+                ParentId: !GetAtt Api.RootResourceId
+              PathPart: 'music'
+            PathPart: '{artist}'
+        HttpMethod: GET
+        ApiKeyRequired: true
+        AuthorizationType: NONE
+        RequestParameters:
+          method.request.path.artist: true
+        Integration:
+          Type: AWS
+          Credentials: 'arn:aws:iam::014183400304:role/ApiAccessRole'
+          # Should always be POST when integrating with AWS services
+          IntegrationHttpMethod: POST
+          # More info: https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/
+          Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query'
+          PassthroughBehavior: WHEN_NO_TEMPLATES
+          RequestParameters:
+            integration.request.path.artist: method.request.path.artist
+          RequestTemplates:
+            # Build the structure of the request that is sent when calling DynamoDB Query
+            # Using single-line, stringified JSON as the mapping template
+            # Use $util.urlDecode($input.params('pathname')) to decode if the url path value contains spaces
+            # A + or %20 may be used as a space in the url
+            application/json: "{\"TableName\":\"nguyen-tran-clinic\",\"IndexName\":\"PK\",\"KeyConditionExpression\":\"artist=:v1\",\"ExpressionAttributeValues\":{\":v1\":{\"S\":\"$util.urlDecode($input.params('artist'))\"}}}"
+          IntegrationResponses:
+            - StatusCode: '200'
+              ResponseTemplates:
+                # Modify the response of the DynamoDB Query before sending back to the caller
+                # Using single-line Velocity Template Language (VTL) code as the mapping template
+                # \n represents a new line, \t represents a tab character, \" represents a single quote character
+                # Example response: {"music":[{"id":"38bfb57e-a5a8-4fed-9a4f-391d66d5e987","artist":"The Beatles","album":"Abbey Road"}]}
+                application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"music\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"id\": \"$field.id.S\",\n\t\t\t\"artist\": \"$field.artist.S\",\n\t\t\t\"album\": \"$field.album.S\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
+        MethodResponses:
+          - StatusCode: '200'
