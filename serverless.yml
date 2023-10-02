@@ -12,6 +12,13 @@ custom:
     strip: true
     dockerizePip: true
     layer: false
+  urlDecode: ${file(./src/urlDecodeTmpl.yml)
+  # query string
+  idFromParams: '"id": "$input.params("id")"'
+  nameFromParams: '"name": "$input.params("name")"'
+  # json body
+  idFromJson: '"id": $input.json("$.id")'
+  nameFromJson: '"name": $input.json("$.name")'
 
   apiGatewayServiceProxies:
     - dynamodb:
@@ -112,6 +119,34 @@ functions:
         - "**"
       include:
         - src/authentication/signup.py
+
+  getHello:
+    handler: handler.hello
+    events:
+      - http:
+          path: /hello
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: '{
+                ${self:custom.idFromParams},
+                ${self:custom.nameFromParams}
+              }'
+  postHello:
+    handler: handler.hello
+    events:
+      - http:
+          path: /hello
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/x-www-form-urlencoded: ${self:custom.urlDecode}
+              application/json: '{
+                ${self:custom.idFromJson},
+                ${self:custom.nameFromJson}
+              }'
 
 resources:
   Resources:
