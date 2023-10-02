@@ -12,7 +12,7 @@ custom:
     strip: true
     dockerizePip: true
     layer: false
-  urlDecode: ${file(./src/urlDecodeTmpl.yml)
+  urlDecode: ${file(./src/urlDecodeTmpl.yml)}
   # query string
   idFromParams: '"id": "$input.params("id")"'
   nameFromParams: '"name": "$input.params("name")"'
