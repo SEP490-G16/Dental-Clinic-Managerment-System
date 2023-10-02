@@ -388,44 +388,65 @@ resources:
           Ref: MyUserPool
         RoleArn: !GetAtt [ReceptionistRole, Arn]
 
-    UserMethodGet:
+    Api:
+      Type: 'AWS::ApiGateway::RestApi'
+      Properties:
+        Name: ${param:AppName}
+        ApiKeySourceType: HEADER
+    MusicResource:
+      Type: 'AWS::ApiGateway::Resource'
+      Properties:
+        RestApiId: !Ref Api
+        ParentId: !GetAtt Api.RootResourceId
+        PathPart: 'music'
+    MusicMethodPost:
       Type: 'AWS::ApiGateway::Method'
-      Properties: 
-        ResApiId:
-          Type: 'AWS::ApiGateway::RestApi'
-          Properties:
-            Name: api-music
-            ApiKeySourceType: HEADER
-        ResourceId:
-          Type: 'AWS::ApiGateway::Resource'
-          Properties:
-            RestApiId:
-              Type: 'AWS::ApiGateway::RestApi'
-              Properties:
-                Name: api-music
-                ApiKeySourceType: HEADER
-            ParentId: 
-              Type: 'AWS::ApiGateway::Resource'
-              Properties:
-                RestApiId: 
-                  Type: 'AWS::ApiGateway::RestApi'
-                  Properties:
-                    Name: api-music
-                    ApiKeySourceType: HEADER
-                ParentId: 
-                  Fn::GetAtt: 
-                    - Api 
-                    - RootResourceId
-              PathPart: 'music'
-            PathPart: '{artist}'
+      Properties:
+        RestApiId: !Ref Api
+        ResourceId: !Ref MusicResource
+        HttpMethod: POST
+        ApiKeyRequired: true
+        AuthorizationType: NONE
+        Integration:
+          Type: AWS
+          Credentials: !GetAtt APIGatewayRole.Arn
+          # Should always be POST when integrating with AWS services
+          IntegrationHttpMethod: POST
+          # More info: https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/
+          Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem'
+          PassthroughBehavior: WHEN_NO_TEMPLATES
+          RequestTemplates:
+            # Build the structure of the request that is sent when calling DynamoDB PutItem
+            # Using single-line, stringified JSON as the mapping template
+            # Example body when making API request: {"artist": "The Beatles", "album": "Abbey Road"}
+            # Use the unique id of the API context variable (eg: $context.requestId) as the DynamoDB item id
+            application/json: "{\"TableName\":\"Music\",\"Item\":{\"id\":{\"S\":\"$context.requestId\"},\"artist\":{\"S\":\"$input.path('$.artist')\"},\"album\":{\"S\":\"$input.path('$.album')\"}}}"
+          IntegrationResponses:
+            - StatusCode: '200'
+              ResponseTemplates:
+                application/json: "{}"
+        MethodResponses:
+          - StatusCode: '200'
+    MusicArtistResource:
+      Type: 'AWS::ApiGateway::Resource'
+      Properties:
+        RestApiId: !Ref Api
+        ParentId: !Ref MusicResource
+        PathPart: '{artist}'
+    MusicArtistMethodGet:
+      Type: 'AWS::ApiGateway::Method'
+      Properties:
+        RestApiId: !Ref Api
+        ResourceId: !Ref MusicArtistResource
         HttpMethod: GET
         ApiKeyRequired: true
         AuthorizationType: NONE
         RequestParameters:
+          # Determines whether the path parameter (eg: artist) is required
           method.request.path.artist: true
         Integration:
           Type: AWS
-          Credentials: 'arn:aws:iam::014183400304:role/ApiAccessRole'
+          Credentials: !GetAtt APIGatewayRole.Arn
           # Should always be POST when integrating with AWS services
           IntegrationHttpMethod: POST
           # More info: https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/
@@ -438,7 +459,7 @@ resources:
             # Using single-line, stringified JSON as the mapping template
             # Use $util.urlDecode($input.params('pathname')) to decode if the url path value contains spaces
             # A + or %20 may be used as a space in the url
-            application/json: "{\"TableName\":\"nguyen-tran-clinic\",\"IndexName\":\"PK\",\"KeyConditionExpression\":\"artist=:v1\",\"ExpressionAttributeValues\":{\":v1\":{\"S\":\"$util.urlDecode($input.params('artist'))\"}}}"
+            application/json: "{\"TableName\":\"Music\",\"IndexName\":\"Artist-Index\",\"KeyConditionExpression\":\"artist=:v1\",\"ExpressionAttributeValues\":{\":v1\":{\"S\":\"$util.urlDecode($input.params('artist'))\"}}}"
           IntegrationResponses:
             - StatusCode: '200'
               ResponseTemplates:
