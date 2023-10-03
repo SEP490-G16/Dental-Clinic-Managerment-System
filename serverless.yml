@@ -17,11 +17,8 @@ provider:
 resources:
   # Override the default description
   Description: An Amazon API Gateway REST API that integrates with an Amazon DynamoDB table (Serverless Framework).
+
   Resources:
-    AuthStack:
-      Type: AWS::Serverless::Application
-      Properties:
-        Location: ./auth.yml
     DynamoDBTable:
       Type: 'AWS::DynamoDB::Table'
       Properties:
@@ -93,8 +90,7 @@ resources:
         ResourceId: !Ref MusicResource
         HttpMethod: POST
         ApiKeyRequired: true
-        AuthorizationType: COGNITO_USER_POOLS
-        AuthorizerId: !Ref AuthorizersCognitoUserPools
+        AuthorizationType: NONE
         Integration:
           Type: AWS
           Credentials: !GetAtt APIGatewayRole.Arn
@@ -196,32 +192,9 @@ resources:
         KeyType: API_KEY
         KeyId: !Ref ApiKey
         UsagePlanId: !Ref ApiUsagePlan
-
-    AuthorizersCognitoUserPools:
-      Type: AWS::ApiGateway::Authorizer
-      Properties:
-        Name: CognitoAuthorizer
-        Type: COGNITO_USER_POOLS
-        RestApiId: !Ref AppApi
-        IdentitySource: method.request.header.authorizationToken
-        ProviderARNs: 
-          - !Ref CognitoUserPoolArn
-
   Outputs:
     ApiRootUrl:
       Description: Root Url of the API
       Value: !Sub 
         - 'https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
         - ApiId: !Ref Api
-
-    oCognitoUserPoolID:
-      Description: Cognito User Pool ID
-      Value: !GetAtt AuthStack.Outputs.oCognitoUserPool
-      Export:
-        Name: !Sub '${AWS::StackName}-CognitoUserPoolID'
-
-    oCognitoUserPoolClientID:
-      Description: Cognito User Pool Client ID
-      Value: !GetAtt AuthStack.Outputs.oCognitoUserPoolClient
-      Export:
-        Name: !Sub '${AWS::StackName}-CognitoUserPoolClientID'
