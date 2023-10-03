@@ -90,7 +90,8 @@ resources:
         ResourceId: !Ref MusicResource
         HttpMethod: POST
         ApiKeyRequired: true
-        AuthorizationType: NONE
+        AuthorizationType: "COGNITO_USER_POOLS"
+        AuthorizerId: !Ref CognitoAuthorizer
         Integration:
           Type: AWS
           Credentials: !GetAtt APIGatewayRole.Arn
@@ -198,3 +199,13 @@ resources:
       Value: !Sub 
         - 'https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
         - ApiId: !Ref Api
+
+  CognitoAuthorizer:
+    Type: 'AWS::ApiGateway::Authorizer'
+    Properties:
+      IdentitySource: "method.request.header.Authorization"
+      ProviderARNs: 
+        - !GetAtt AuthStack.Outputs.oCognitoUserPoolArn
+      Type: COGNITO_USER_POOLS
+      Name: CognitoAuthorizer
+      RestApiId: !Ref rApiGateway
