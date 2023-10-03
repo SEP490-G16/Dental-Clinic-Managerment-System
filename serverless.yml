@@ -197,16 +197,6 @@ resources:
         KeyId: !Ref ApiKey
         UsagePlanId: !Ref ApiUsagePlan
 
-    CognitoAuthorizer:
-      Type: 'AWS::ApiGateway::Authorizer'
-      Properties:
-        IdentitySource: "method.request.header.Authorization"
-        ProviderARNs: 
-          - !GetAtt AuthStack.Outputs.oCognitoUserPoolArn
-        Type: COGNITO_USER_POOLS
-        Name: CognitoAuthorizer
-        RestApiId: !Ref rApiGateway
-
     AuthorizersCognitoUserPools:
       Type: AWS::ApiGateway::Authorizer
       Properties:
