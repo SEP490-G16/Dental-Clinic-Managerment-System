@@ -17,7 +17,10 @@ provider:
 resources:
   # Override the default description
   Description: An Amazon API Gateway REST API that integrates with an Amazon DynamoDB table (Serverless Framework).
-
+  AuthStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./auth.yml
   Resources:
     DynamoDBTable:
       Type: 'AWS::DynamoDB::Table'
