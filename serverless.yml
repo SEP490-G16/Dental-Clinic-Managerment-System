@@ -193,12 +193,6 @@ resources:
         KeyType: API_KEY
         KeyId: !Ref ApiKey
         UsagePlanId: !Ref ApiUsagePlan
-  Outputs:
-    ApiRootUrl:
-      Description: Root Url of the API
-      Value: !Sub 
-        - 'https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
-        - ApiId: !Ref Api
 
   CognitoAuthorizer:
     Type: 'AWS::ApiGateway::Authorizer'
@@ -209,3 +203,24 @@ resources:
       Type: COGNITO_USER_POOLS
       Name: CognitoAuthorizer
       RestApiId: !Ref rApiGateway
+
+  Outputs:
+    ApiRootUrl:
+      Description: Root Url of the API
+      Value: !Sub 
+        - 'https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
+        - ApiId: !Ref Api
+
+Outputs:
+
+  oCognitoUserPoolID:
+    Description: Cognito User Pool ID
+    Value: !GetAtt AuthStack.Outputs.oCognitoUserPool
+    Export:
+      Name: !Sub '${AWS::StackName}-CognitoUserPoolID'
+
+  oCognitoUserPoolClientID:
+    Description: Cognito User Pool Client ID
+    Value: !GetAtt AuthStack.Outputs.oCognitoUserPoolClient
+    Export:
+      Name: !Sub '${AWS::StackName}-CognitoUserPoolClientID'
