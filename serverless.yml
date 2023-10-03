@@ -93,8 +93,8 @@ resources:
         ResourceId: !Ref MusicResource
         HttpMethod: POST
         ApiKeyRequired: true
-        AuthorizationType: "COGNITO_USER_POOLS"
-        AuthorizerId: !Ref CognitoAuthorizer
+        AuthorizationType: COGNITO_USER_POOLS
+        AuthorizerId: !Ref AuthorizersCognitoUserPools
         Integration:
           Type: AWS
           Credentials: !GetAtt APIGatewayRole.Arn
@@ -197,15 +197,25 @@ resources:
         KeyId: !Ref ApiKey
         UsagePlanId: !Ref ApiUsagePlan
 
-  CognitoAuthorizer:
-    Type: 'AWS::ApiGateway::Authorizer'
-    Properties:
-      IdentitySource: "method.request.header.Authorization"
-      ProviderARNs: 
-        - !GetAtt AuthStack.Outputs.oCognitoUserPoolArn
-      Type: COGNITO_USER_POOLS
-      Name: CognitoAuthorizer
-      RestApiId: !Ref rApiGateway
+    CognitoAuthorizer:
+      Type: 'AWS::ApiGateway::Authorizer'
+      Properties:
+        IdentitySource: "method.request.header.Authorization"
+        ProviderARNs: 
+          - !GetAtt AuthStack.Outputs.oCognitoUserPoolArn
+        Type: COGNITO_USER_POOLS
+        Name: CognitoAuthorizer
+        RestApiId: !Ref rApiGateway
+
+    AuthorizersCognitoUserPools:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: CognitoAuthorizer
+        Type: COGNITO_USER_POOLS
+        RestApiId: !Ref AppApi
+        IdentitySource: method.request.header.authorizationToken
+        ProviderARNs: 
+          - !Ref CognitoUserPoolArn
 
   Outputs:
     ApiRootUrl:
@@ -214,16 +224,14 @@ resources:
         - 'https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
         - ApiId: !Ref Api
 
-Outputs:
+    oCognitoUserPoolID:
+      Description: Cognito User Pool ID
+      Value: !GetAtt AuthStack.Outputs.oCognitoUserPool
+      Export:
+        Name: !Sub '${AWS::StackName}-CognitoUserPoolID'
 
-  oCognitoUserPoolID:
-    Description: Cognito User Pool ID
-    Value: !GetAtt AuthStack.Outputs.oCognitoUserPool
-    Export:
-      Name: !Sub '${AWS::StackName}-CognitoUserPoolID'
-
-  oCognitoUserPoolClientID:
-    Description: Cognito User Pool Client ID
-    Value: !GetAtt AuthStack.Outputs.oCognitoUserPoolClient
-    Export:
-      Name: !Sub '${AWS::StackName}-CognitoUserPoolClientID'
+    oCognitoUserPoolClientID:
+      Description: Cognito User Pool Client ID
+      Value: !GetAtt AuthStack.Outputs.oCognitoUserPoolClient
+      Export:
+        Name: !Sub '${AWS::StackName}-CognitoUserPoolClientID'
