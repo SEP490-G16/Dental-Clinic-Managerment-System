@@ -98,7 +98,6 @@ Resources:
       Description: "Admin group for special privileges"
       UserPoolId:
         Ref: UserPool
-      RoleArn: !GetAtt AdminRole.Arn
 
   DoctorGroup:
     Type: AWS::Cognito::UserPoolGroup
@@ -107,7 +106,6 @@ Resources:
       Description: "Doctor group"
       UserPoolId:
         Ref: UserPool
-      RoleArn: !GetAtt DoctorRole.Arn
 
   NurseGroup:
     Type: AWS::Cognito::UserPoolGroup
@@ -116,76 +114,22 @@ Resources:
       Description: "Nurse group"
       UserPoolId:
         Ref: UserPool
-      RoleArn: !GetAtt NurseRole.Arn
 
-  AdminRole:
-    Type: AWS::IAM::Role
+  HeadNurseGroup:
+    Type: AWS::Cognito::UserPoolGroup
     Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Federated: "cognito-identity.amazonaws.com"
-            Action:
-              - "sts:AssumeRoleWithWebIdentity"
-            Condition:
-              StringEquals:
-                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
-      Policies:
-        - PolicyName: "AdminFullAccess"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action: "*"
-                Resource: "*"
+      GroupName: !Sub "${StageName}-${AppName}-head-nurse"
+      Description: "Head Nurse group"
+      UserPoolId:
+        Ref: UserPool
 
-  DoctorRole:
-    Type: AWS::IAM::Role
+  ReceptionistGroup:
+    Type: AWS::Cognito::UserPoolGroup
     Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Federated: "cognito-identity.amazonaws.com"
-            Action:
-              - "sts:AssumeRoleWithWebIdentity"
-            Condition:
-              StringEquals:
-                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
-      Policies:
-        - PolicyName: "DoctorLimitedAccess"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action:
-                  - "execute-api:Invoke"
-
-  NurseRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Federated: "cognito-identity.amazonaws.com"
-            Action:
-              - "sts:AssumeRoleWithWebIdentity"
-            Condition:
-              StringEquals:
-                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
-      Policies:
-        - PolicyName: "NurseLimitedAccess"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action:
-                  - "execute-api:Invoke"
+      GroupName: !Sub "${StageName}-${AppName}-receptionist"
+      Description: "Receptionist group"
+      UserPoolId:
+        Ref: UserPool
 
 Outputs:
   UserPoolId:
@@ -215,3 +159,11 @@ Outputs:
   NurseGroupId:
     Description: "ID of the Nurse user pool group"
     Value: !Ref NurseGroup
+
+  HeadNurseGroupId:
+    Description: "ID of the Head Nurse user pool group"
+    Value: !Ref HeadNurseGroup
+
+  ReceptionistGroupId:
+    Description: "ID of the Receptionist user pool group"
+    Value: !Ref ReceptionistGroup
