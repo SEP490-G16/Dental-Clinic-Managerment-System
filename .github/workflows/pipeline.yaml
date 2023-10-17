@@ -193,7 +193,7 @@ jobs:
       - name: Deploy to dev account
         run: |
           sam deploy --stack-name ${DEV_STACK_NAME} \
-            --template packaged-DEV.yaml \
+            --template packaged-dev.yaml \
             --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
             --region ${DEV_REGION} \
             --s3-bucket ${DEV_ARTIFACTS_BUCKET} \
