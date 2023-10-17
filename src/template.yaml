@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Dental-Clinic-Managerment-System
+
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 256
+
+Parameters:
+  StageName:
+    Type: String
+    Description: Stage name
+    Default: dev
+
+Resources:
+  InfrastructureStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./infrastructure/infrastructure.yaml
+      Parameters:
+        TableName: !Sub "${StageName}-nguyen-tran-clinic"
+        StageName: !Sub ${StageName}
+        AppName: "dmcs"

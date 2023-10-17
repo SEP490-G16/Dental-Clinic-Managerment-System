@@ -1,0 +1,221 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: COGNITO - USER POOL / USER POOL CLIENT
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "${StageName}-${AppName}-userpool"
+      MfaConfiguration: "OFF"
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: DOB
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: address
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: phone_number
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: description
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: status
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: image
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+      AliasAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: True
+          RequireLowercase: True
+          RequireNumbers: True
+          RequireSymbols: True
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "${StageName}-${AppName}-userpool-client"
+      GenerateSecret: false
+      UserPoolId:
+        Ref: UserPool
+      SupportedIdentityProviders:
+        - COGNITO
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+
+  IdentityPool:
+    Type: "AWS::Cognito::IdentityPool"
+    Properties:
+      IdentityPoolName: !Sub "${StageName}-${AppName}-identity-pool"
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName:
+            !Join [
+              "",
+              [
+                "cognito-idp.",
+                !Ref "AWS::Region",
+                ".amazonaws.com/",
+                !Ref UserPool,
+              ],
+            ]
+
+  AdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: !Sub "${StageName}-${AppName}-admin"
+      Description: "Admin group for special privileges"
+      UserPoolId:
+        Ref: UserPool
+      RoleArn: !GetAtt AdminRole.Arn
+
+  DoctorGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: !Sub "${StageName}-${AppName}-doctor"
+      Description: "Doctor group"
+      UserPoolId:
+        Ref: UserPool
+      RoleArn: !GetAtt DoctorRole.Arn
+
+  NurseGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: !Sub "${StageName}-${AppName}-nurse"
+      Description: "Nurse group"
+      UserPoolId:
+        Ref: UserPool
+      RoleArn: !GetAtt NurseRole.Arn
+
+  AdminRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: "cognito-identity.amazonaws.com"
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+      Policies:
+        - PolicyName: "AdminFullAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "*"
+                Resource: "*"
+
+  DoctorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: "cognito-identity.amazonaws.com"
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+      Policies:
+        - PolicyName: "DoctorLimitedAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "execute-api:Invoke"
+                Resource:
+                  - !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AppApiId}/*/GET/common"
+
+  NurseRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: "cognito-identity.amazonaws.com"
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+      Policies:
+        - PolicyName: "NurseLimitedAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "execute-api:Invoke"
+                Resource:
+                  - !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AppApiId}/*/GET/common"
+
+Outputs:
+  UserPoolId:
+    Description: "ID of the created user pool"
+    Value: !Ref UserPool
+
+  UserPoolArn:
+    Description: "ARN of the created user pool"
+    Value: !GetAtt UserPool.Arn
+
+  UserPoolClientId:
+    Description: "ID of the created user pool client"
+    Value: !Ref UserPoolClient
+
+  IdentityPoolId:
+    Description: "ID of the created identity pool"
+    Value: !Ref IdentityPool
+
+  AdminGroupId:
+    Description: "ID of the Admin user pool group"
+    Value: !Ref AdminGroup
+
+  DoctorGroupId:
+    Description: "ID of the Doctor user pool group"
+    Value: !Ref DoctorGroup
+
+  NurseGroupId:
+    Description: "ID of the Nurse user pool group"
+    Value: !Ref NurseGroup

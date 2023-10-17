@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Infrastructure template
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  TableName:
+    Type: String
+    Description: Name of the DynamoDB table
+
+Resources:
+  CognitoStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./cognito.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
