@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: lambda Layer
+
+Resources:
+  ODBCLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: ODBCLayer
+      Description: ODBC Driver for SQL Server
+      ContentUri: odbc-layer.zip
+      CompatibleRuntimes:
+        - python3.8
+Outputs:
+  ODBCLayerArn:
+    Description: ODBC Layer ARN
+    Value:
+      Ref: ODBCLayer

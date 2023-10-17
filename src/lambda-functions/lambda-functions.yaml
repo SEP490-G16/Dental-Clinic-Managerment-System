@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Nested stack for all lambda functions"
+
+Parameters:
+  Server:
+    Type: String
+    Description: "Database server name"
+  Database:
+    Type: String
+    Description: "Database name"
+  Username:
+    Type: String
+    Description: "Database username"
+  Password:
+    Type: String
+    Description: "Database password"
+    NoEcho: true
+
+Resources:
+  PatientFunctions:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./lambda-functions/patient/patient.yaml
+      Parameters:
+        Server: !Ref Server
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+
+  # StaffFunctions:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: ./lambda-functions/staff/staff.yaml
+  #     Parameters:
+  #       Server: !Ref Server
+  #       Database: !Ref Database
+  #       Username: !Ref Username
+  #       Password: !Ref Password
+
+Outputs:
+  PatientFunctionOutputs:
+    Description: "Outputs from the PatientFunctions stack"
+    Value:
+      Fn::GetAtt:
+        - PatientFunctions
+        - Outputs
+
+  StaffFunctionOutputs:
+    Description: "Outputs from the StaffFunctions stack"
+    Value:
+      Fn::GetAtt:
+        - StaffFunctions
+        - Outputs

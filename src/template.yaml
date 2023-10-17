@@ -13,6 +13,23 @@ Parameters:
     Type: String
     Description: Stage name
     Default: dev
+  DBServer:
+    Type: String
+    Description: "Database server name"
+    Default: "nguyen-tran-clinic-db.c4a0pr3rutpd.ap-southeast-1.rds.amazonaws.com"
+  Database:
+    Type: String
+    Description: "Database name"
+    Default: "nguyen-tran-clinic"
+  DBUsername:
+    Type: String
+    Description: "Database username"
+    Default: "admin"
+  DBPassword:
+    Type: String
+    Description: "Database password"
+    Default: "sA2PH6km3AmSj8wCHlKl"
+    NoEcho: true
 
 Resources:
   InfrastructureStack:
@@ -23,3 +40,28 @@ Resources:
         TableName: !Sub "${StageName}-nguyen-tran-clinic"
         StageName: !Sub ${StageName}
         AppName: "dmcs"
+
+  ODBCLayer:
+    Type: "AWS::Include"
+    Properties:
+      Location: ./lambda-layer/lambda-layer.yaml
+
+  LambdaFunctions:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./lambda-functions/lambda-functions.yaml
+      Parameters:
+        Server: !Ref Server
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+
+Outputs:
+  ODBCLayerArn:
+    Description: "ODBC Layer ARN"
+    Value:
+      Fn::GetAtt:
+        - ODBCLayer
+        - Arn
+    Export:
+      Name: ODBCLayerArn
