@@ -21,7 +21,7 @@ Resources:
   PatientFunctions:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: ./lambda-functions/patient/patient.yaml
+      TemplateURL: patient/patient.yaml
       Parameters:
         Server: !Ref Server
         Database: !Ref Database
