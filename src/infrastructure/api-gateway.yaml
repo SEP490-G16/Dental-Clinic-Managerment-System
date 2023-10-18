@@ -7,7 +7,7 @@ Parameters:
     Type: String
     Description: Stage name
     Default: prod
-  UserPoolArn:
+  UserPoolId:
     Type: String
 
 Resources:
@@ -20,7 +20,7 @@ Resources:
         DefaultAuthorizer: MyCognitoAuthorizer
         Authorizers:
           MyCognitoAuthorizer:
-            UserPoolArn: !Sub UserPoolArn
+            UserPoolArn: !Sub UserPoolId
             Identity:
               Header: Authorization
               ValidationExpression: "^Bearer [-0-9a-zA-Z\\.\\_]*$"
