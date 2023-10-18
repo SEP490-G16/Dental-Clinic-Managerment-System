@@ -50,10 +50,10 @@ Resources:
     Properties:
       TemplateURL: ./lambda-functions/lambda-functions.yaml
       Parameters:
-        Server: !Ref Server
+        Server: !Ref DBServer
         Database: !Ref Database
-        Username: !Ref Username
-        Password: !Ref Password
+        Username: !Ref DBUsername
+        Password: !Ref DBPassword
         ODBCLayerArn: !Ref ODBCLayerArn
 
 Outputs:
