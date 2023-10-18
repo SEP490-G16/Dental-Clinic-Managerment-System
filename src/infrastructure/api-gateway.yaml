@@ -20,19 +20,21 @@ Resources:
         DefaultAuthorizer: MyCognitoAuthorizer
         Authorizers:
           MyCognitoAuthorizer:
-            UserPoolArn: !Ref UserPoolArn
+            UserPoolArn: !Sub UserPoolArn
             Identity:
               Header: Authorization
-              ValidationExpression: .*
+              ValidationExpression: "^Bearer [-0-9a-zA-Z\\.\\_]*$"
+              ReauthorizeEvery: 300
+            IdentitySource: method.request.header.Authorization
 
-  MyCognitoAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      Name: CognitoUserPoolAuthorizer
-      Type: COGNITO_USER_POOLS
-      ProviderARNs:
-        - !Ref UserPoolArn # Ensure you export this from your Cognito stack
-      RestApiId: !Ref AppApi
+  # MyCognitoAuthorizer:
+  #   Type: AWS::ApiGateway::Authorizer
+  #   Properties:
+  #     Name: CognitoUserPoolAuthorizer
+  #     Type: COGNITO_USER_POOLS
+  #     ProviderARNs:
+  #       - !Ref UserPoolArn # Ensure you export this from your Cognito stack
+  #     RestApiId: !Ref AppApi
 
 Outputs:
   AppApiRootUrl:

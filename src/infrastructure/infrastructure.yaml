@@ -22,6 +22,7 @@ Resources:
 
   RolesStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: CognitoStack
     Properties:
       TemplateURL: ./roles.yaml
 
