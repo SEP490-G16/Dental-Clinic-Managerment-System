@@ -35,9 +35,9 @@ Resources:
         GetRoot:
           Type: Api
           Properties:
-          Path: /patient/
-          Method: get
-          RestApiId: !ImportValue AppApiId
+            Path: /patient/
+            Method: get
+            RestApiId: !ImportValue AppApiId
 # Outputs:
 #   GetAPatientFunctionArn:
 #     Description: "ARN of the GetAPatient function"
