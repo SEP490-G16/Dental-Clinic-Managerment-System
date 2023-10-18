@@ -23,7 +23,16 @@ Resources:
             UserPoolArn: !Ref UserPoolArn
             Identity:
               Header: Authorization
-              ReauthorizeEvery: 300
+              ValidationExpression: .*
+
+  MyCognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: CognitoUserPoolAuthorizer
+      Type: COGNITO_USER_POOLS
+      ProviderARNs:
+        - !Ref UserPoolArn # Ensure you export this from your Cognito stack
+      RestApiId: !Ref AppApi
 
 Outputs:
   AppApiRootUrl:
