@@ -32,3 +32,19 @@ Resources:
       TemplateURL: ./api-gateway.yaml
     Parameters:
       StageName: !Ref StageName
+      UserPoolArn: !GetAtt CognitoStack.Outputs.UserPoolArn
+
+Outputs:
+  CognitoUserPoolArn:
+    Value: !GetAtt CognitoStack.Outputs.UserPoolArn
+
+  CognitoUserPoolId:
+    Value: !GetAtt CognitoStack.Outputs.UserPoolId
+
+  AppApiRootUrl:
+    Description: "URL for the root of the API Gateway"
+    Value: !GetAtt ApiGatewayStack.Outputs.AppApiRootUrl
+
+  AppApiId:
+    Description: "ID for the API Gateway"
+    Value: !GetAtt ApiGatewayStack.Outputs.AppApiId

@@ -47,14 +47,14 @@ Resources:
         StageName: !Sub ${StageName}
         AppName: "dmcs"
 
-  LambdaFunctions:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: InfrastructureStack
-    Properties:
-      TemplateURL: ./lambda-functions/lambda-functions.yaml
-      Parameters:
-        Server: !Ref DBServer
-        Database: !Ref Database
-        Username: !Ref DBUsername
-        Password: !Ref DBPassword
-        ODBCLayerArn: !Ref ODBCLayerArn
+  # LambdaFunctions:
+  #   Type: AWS::CloudFormation::Stack
+  #   DependsOn: InfrastructureStack
+  #   Properties:
+  #     TemplateURL: ./lambda-functions/lambda-functions.yaml
+  #     Parameters:
+  #       Server: !Ref DBServer
+  #       Database: !Ref Database
+  #       Username: !Ref DBUsername
+  #       Password: !Ref DBPassword
+  #       ODBCLayerArn: !Ref ODBCLayerArn

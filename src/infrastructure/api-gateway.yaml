@@ -7,6 +7,8 @@ Parameters:
     Type: String
     Description: Stage name
     Default: prod
+  UserPoolArn:
+    Type: String
 
 Resources:
   AppApi:
@@ -18,7 +20,7 @@ Resources:
         DefaultAuthorizer: MyCognitoAuthorizer
         Authorizers:
           MyCognitoAuthorizer:
-            UserPoolArn: !ImportValue UserPoolArn
+            UserPoolArn: !Ref UserPoolArn
             Identity:
               Header: Authorization
               ReauthorizeEvery: 300
@@ -27,11 +29,7 @@ Outputs:
   AppApiRootUrl:
     Description: "URL for the root of the API Gateway"
     Value: !Sub "https://${AppApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/"
-    Export:
-      Name: AppApiRootUrl
 
   AppApiId:
     Description: "ID for the API Gateway"
     Value: !Ref AppApi
-    Export:
-      Name: AppApiId
