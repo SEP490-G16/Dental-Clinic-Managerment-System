@@ -46,15 +46,15 @@ Resources:
     Properties:
       Location: ./lambda-layer/lambda-layer.yaml
 
-  LambdaFunctions:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: ./lambda-functions/lambda-functions.yaml
-      Parameters:
-        Server: !Ref Server
-        Database: !Ref Database
-        Username: !Ref Username
-        Password: !Ref Password
+  # LambdaFunctions:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: ./lambda-functions/lambda-functions.yaml
+  #     Parameters:
+  #       Server: !Ref Server
+  #       Database: !Ref Database
+  #       Username: !Ref Username
+  #       Password: !Ref Password
 
 Outputs:
   ODBCLayerArn:
