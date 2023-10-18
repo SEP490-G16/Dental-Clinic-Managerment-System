@@ -19,3 +19,8 @@ Resources:
       Parameters:
         StageName: !Ref StageName
         AppName: !Ref AppName
+
+  RolesStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./roles.yaml
