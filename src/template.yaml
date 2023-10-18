@@ -49,6 +49,7 @@ Resources:
 
   LambdaFunctions:
     Type: AWS::CloudFormation::Stack
+    DependsOn: InfrastructureStack
     Properties:
       TemplateURL: ./lambda-functions/lambda-functions.yaml
       Parameters:

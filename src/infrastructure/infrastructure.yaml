@@ -24,3 +24,11 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./roles.yaml
+
+  ApiGatewayStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: RolesStack
+    Properties:
+      TemplateURL: ./api-gateway.yaml
+    Parameters:
+      StageName: !Ref StageName
