@@ -49,10 +49,3 @@ Outputs:
       Fn::GetAtt:
         - PatientFunctions
         - Outputs
-
-  StaffFunctionOutputs:
-    Description: "Outputs from the StaffFunctions stack"
-    Value:
-      Fn::GetAtt:
-        - StaffFunctions
-        - Outputs

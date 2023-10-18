@@ -19,7 +19,7 @@ Resources:
   GetAPatientFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda-functions/patient/
+      CodeUri: patient/
       Handler: get_a_patient.lambda_handler
       Runtime: python3.8
       Layers:
