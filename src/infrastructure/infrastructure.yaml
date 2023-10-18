@@ -30,9 +30,9 @@ Resources:
     DependsOn: RolesStack
     Properties:
       TemplateURL: ./api-gateway.yaml
-    Parameters:
-      StageName: !Ref StageName
-      UserPoolArn: !GetAtt CognitoStack.Outputs.UserPoolArn
+      Parameters:
+        StageName: !Ref StageName
+        UserPoolArn: !GetAtt CognitoStack.Outputs.UserPoolArn
 
 Outputs:
   CognitoUserPoolArn:
