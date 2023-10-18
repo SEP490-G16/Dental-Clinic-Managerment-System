@@ -11,6 +11,9 @@ Parameters:
     Type: String
   Password:
     Type: String
+  ODBCLayerArn:
+    Description: ARN of the Lambda layer to associate with our function
+    Type: String
 
 Resources:
   GetAPatientFunction:
@@ -20,7 +23,7 @@ Resources:
       Handler: get_a_patient.lambda_handler
       Runtime: python3.8
       Layers:
-        - !ImportValue ODBCLayerArn
+        - !Ref ODBCLayerArn
       Environment:
         Variables:
           SERVER: !Ref Server

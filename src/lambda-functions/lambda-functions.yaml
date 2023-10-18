@@ -16,6 +16,9 @@ Parameters:
     Type: String
     Description: "Database password"
     NoEcho: true
+  ODBCLayerArn:
+    Description: ARN of the Lambda layer to associate with our function
+    Type: String
 
 Resources:
   PatientFunctions:
@@ -27,6 +30,7 @@ Resources:
         Database: !Ref Database
         Username: !Ref Username
         Password: !Ref Password
+        ODBCLayerArn: !Ref ODBCLayerArn
 
   # StaffFunctions:
   #   Type: AWS::CloudFormation::Stack

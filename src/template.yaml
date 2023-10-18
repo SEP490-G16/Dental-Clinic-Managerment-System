@@ -30,6 +30,10 @@ Parameters:
     Description: "Database password"
     Default: "sA2PH6km3AmSj8wCHlKl"
     NoEcho: true
+  ODBCLayerArn:
+    Description: ARN of the Lambda layer to associate with our function
+    Type: String
+    Default: "arn:aws:lambda:ap-southeast-1:014183400304:layer:ODBCLayer:2"
 
 Resources:
   InfrastructureStack:
@@ -41,20 +45,16 @@ Resources:
         StageName: !Sub ${StageName}
         AppName: "dmcs"
 
-  ODBCLayer:
-    Type: "AWS::Include"
+  LambdaFunctions:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      Location: ./lambda-layer/lambda-layer.yaml
-
-  # LambdaFunctions:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: ./lambda-functions/lambda-functions.yaml
-  #     Parameters:
-  #       Server: !Ref Server
-  #       Database: !Ref Database
-  #       Username: !Ref Username
-  #       Password: !Ref Password
+      TemplateURL: ./lambda-functions/lambda-functions.yaml
+      Parameters:
+        Server: !Ref Server
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        ODBCLayerArn: !Ref ODBCLayerArn
 
 Outputs:
   ODBCLayerArn:
