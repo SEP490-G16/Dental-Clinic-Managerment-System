@@ -8,7 +8,7 @@ Resources:
     Properties:
       LayerName: ODBCLayer
       Description: ODBC Driver for SQL Server
-      ContentUri: odbc-layer.zip
+      ContentUri: ./odbc-layer
       CompatibleRuntimes:
         - python3.8
       Metadata:
