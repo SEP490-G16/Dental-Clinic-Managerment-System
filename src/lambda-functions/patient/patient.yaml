@@ -24,6 +24,7 @@ Resources:
       Runtime: python3.8
       Layers:
         - !Ref ODBCLayerArn
+      Role: !ImportValue LambdaExecutionRoleArn
       Environment:
         Variables:
           SERVER: !Ref Server
