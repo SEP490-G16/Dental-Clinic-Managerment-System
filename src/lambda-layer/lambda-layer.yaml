@@ -11,6 +11,8 @@ Resources:
       ContentUri: odbc-layer.zip
       CompatibleRuntimes:
         - python3.8
+      Metadata:
+        BuildMethod: python3.8
 Outputs:
   ODBCLayerArn:
     Description: ODBC Layer ARN
