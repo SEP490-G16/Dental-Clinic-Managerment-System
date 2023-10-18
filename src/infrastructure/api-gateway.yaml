@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "api-gateway template"
+
+Parameters:
+  StageName:
+    Type: String
+    Description: Stage name
+    Default: prod
+
+Resources:
+  AppApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Description: "REST API with Cognito Authorizer"
+      StageName: !Sub ${StageName}
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !ImportValue UserPoolArn
+            Identity:
+              Header: Authorization
+              ReauthorizeEvery: 300
+
+Outputs:
+  AppApiRootUrl:
+    Description: "URL for the root of the API Gateway"
+    Value: !Sub "https://${AppApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/"
+    Export:
+      Name: AppApiRootUrl
+
+  AppApiId:
+    Description: "ID for the API Gateway"
+    Value: !Ref AppApi
+    Export:
+      Name: AppApiId
