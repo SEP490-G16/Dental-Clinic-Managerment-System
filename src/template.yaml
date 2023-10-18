@@ -55,13 +55,3 @@ Resources:
         Username: !Ref DBUsername
         Password: !Ref DBPassword
         ODBCLayerArn: !Ref ODBCLayerArn
-
-Outputs:
-  ODBCLayerArn:
-    Description: "ODBC Layer ARN"
-    Value:
-      Fn::GetAtt:
-        - ODBCLayer
-        - Arn
-    Export:
-      Name: ODBCLayerArn
