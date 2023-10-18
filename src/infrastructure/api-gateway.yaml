@@ -20,7 +20,7 @@ Resources:
         DefaultAuthorizer: MyCognitoAuthorizer
         Authorizers:
           MyCognitoAuthorizer:
-            UserPoolArn: !Sub UserPoolId
+            UserPoolArn: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
             Identity:
               Header: Authorization
               ValidationExpression: "^Bearer [-0-9a-zA-Z\\.\\_]*$"
