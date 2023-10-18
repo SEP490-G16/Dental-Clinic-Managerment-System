@@ -30,8 +30,7 @@ Resources:
           DATABASE: !Ref Database
           USERNAME: !Ref Username
           PASSWORD: !Ref Password
-
-Outputs:
-  GetAPatientFunctionArn:
-    Description: "ARN of the GetAPatient function"
-    Value: !GetAtt GetAPatientFunction.Arn
+# Outputs:
+#   GetAPatientFunctionArn:
+#     Description: "ARN of the GetAPatient function"
+#     Value: !GetAtt GetAPatientFunction.Arn

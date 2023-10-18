@@ -41,11 +41,10 @@ Resources:
   #       Database: !Ref Database
   #       Username: !Ref Username
   #       Password: !Ref Password
-
-Outputs:
-  PatientFunctionOutputs:
-    Description: "Outputs from the PatientFunctions stack"
-    Value:
-      Fn::GetAtt:
-        - PatientFunctions
-        - Outputs
+# Outputs:
+#   PatientFunctionOutputs:
+#     Description: "Outputs from the PatientFunctions stack"
+#     Value:
+#       Fn::GetAtt:
+#         - PatientFunctions
+#         - Outputs
