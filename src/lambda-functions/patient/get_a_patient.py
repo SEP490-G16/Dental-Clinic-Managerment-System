@@ -6,7 +6,7 @@ server = 'your_server_name'
 database = 'your_database_name'
 username = 'your_username'
 password = 'your_password'
-# tên driver có thể cần điều chỉnh tùy vào phiên bản
+# tên driver có thể cần điều chỉnh tùy vào phiên bản.
 driver = '{ODBC Driver 17 for SQL Server}'
 
 # Thiết lập kết nối
