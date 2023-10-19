@@ -60,11 +60,12 @@ Resources:
             Path: /activities/{id}
             Method: get
       Policies:
-        - Statement:
-        - Effect: Allow
-          Action:
-            - "rds:*"
-          Resource: "*"
+        - Version: "2012-10-17" # IAM Policy Version
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
 # Outputs:
 #   GetAPatientFunctionArn:
 #     Description: "ARN of the GetAPatient function"

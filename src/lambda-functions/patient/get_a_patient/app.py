@@ -7,16 +7,16 @@ conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
 cursor = conn.cursor()
 
 
-def lambda_handler(message, context):
-    if ('pathParameters' not in message or
-            message['httpMethod'] != 'GET'):
+def lambda_handler(event, context):
+    if ('pathParameters' not in event or
+            event['httpMethod'] != 'GET'):
         return {
             'statusCode': 400,
             'headers': {},
             'body': json.dumps({'msg': 'Bad Request'})
         }
 
-    patient_id = message['pathParameters']['id']
+    patient_id = event['pathParameters']['id']
     query = "SELECT * FROM `patient` WHERE patient_id = %s;"
     cursor.execute(query, (patient_id))
     rows = cursor.fetchall()
