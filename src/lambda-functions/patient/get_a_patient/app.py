@@ -37,8 +37,16 @@ def lambda_handler(event, context):
     cursor.close()
     conn.close()
 
+    # Kiểm tra nếu không tìm thấy bản ghi nào
+    if len(transformed_rows) == 0:
+        return {
+            'statusCode': 404,
+            'headers': {},
+            'body': json.dumps({'msg': 'Patient not found'}, ensure_ascii=False)
+        }
+
     return {
         'statusCode': 200,
         'headers': {},
-        'body': json.dumps(transformed_rows)
+        'body': json.dumps(transformed_rows, ensure_ascii=False)
     }
