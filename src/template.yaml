@@ -15,14 +15,14 @@ Parameters:
     Type: String
     Description: Stage name
     Default: dev
-  DBServer:
+  DBHost:
     Type: String
-    Description: "Database server name"
+    Description: "Database host address"
     Default: "nguyen-tran-clinic-db.c4a0pr3rutpd.ap-southeast-1.rds.amazonaws.com"
   Database:
     Type: String
     Description: "Database name"
-    Default: "nguyen-tran-clinic"
+    Default: "nguyen_tran_clinic"
   DBUsername:
     Type: String
     Description: "Database username"
@@ -30,12 +30,12 @@ Parameters:
   DBPassword:
     Type: String
     Description: "Database password"
-    Default: "sA2PH6km3AmSj8wCHlKl"
+    Default: "COMK9szvsdq8EyJEC0Hq"
     NoEcho: true
-  ODBCLayerArn:
+  PyMySQLLayerArn:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
-    Default: "arn:aws:lambda:ap-southeast-1:014183400304:layer:ODBCLayer:2"
+    Default: "arn:aws:lambda:ap-southeast-1:014183400304:layer:PyMySQL:1"
 
 Resources:
   InfrastructureStack:
@@ -47,14 +47,14 @@ Resources:
         StageName: !Sub ${StageName}
         AppName: "dmcs"
 
-  # LambdaFunctions:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: InfrastructureStack
-  #   Properties:
-  #     TemplateURL: ./lambda-functions/lambda-functions.yaml
-  #     Parameters:
-  #       Server: !Ref DBServer
-  #       Database: !Ref Database
-  #       Username: !Ref DBUsername
-  #       Password: !Ref DBPassword
-  #       ODBCLayerArn: !Ref ODBCLayerArn
+  LambdaFunctions:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: InfrastructureStack
+    Properties:
+      TemplateURL: ./lambda-functions/lambda-functions.yaml
+      Parameters:
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref DBUsername
+        Password: !Ref DBPassword
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn

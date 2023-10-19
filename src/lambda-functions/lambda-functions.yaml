@@ -3,9 +3,9 @@ Transform: "AWS::Serverless-2016-10-31"
 Description: "Nested stack for all lambda functions"
 
 Parameters:
-  Server:
+  DBHost:
     Type: String
-    Description: "Database server name"
+    Description: "Database host address"
   Database:
     Type: String
     Description: "Database name"
@@ -16,7 +16,7 @@ Parameters:
     Type: String
     Description: "Database password"
     NoEcho: true
-  ODBCLayerArn:
+  PyMySQLLayerArn:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
 
@@ -26,7 +26,7 @@ Resources:
     Properties:
       TemplateURL: patient/patient.yaml
       Parameters:
-        Server: !Ref Server
+        DBHost: !Ref DBHost
         Database: !Ref Database
         Username: !Ref Username
         Password: !Ref Password

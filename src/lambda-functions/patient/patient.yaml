@@ -3,7 +3,7 @@ Transform: "AWS::Serverless-2016-10-31"
 Description: "Patient functions stack."
 
 Parameters:
-  Server:
+  DBHost:
     Type: String
   Database:
     Type: String
@@ -11,33 +11,58 @@ Parameters:
     Type: String
   Password:
     Type: String
-  ODBCLayerArn:
+  PyMySQLLayerArn:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
 
 Resources:
-  GetAPatientFunction:
+  # GetAPatientFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: get_a_patient
+  #     Handler: handler.lambda_handler
+  #     Runtime: python3.8
+  #     Layers:
+  #       - !Ref ODBCLayerArn
+  #     Role: !ImportValue LambdaExecutionRoleArn
+  #     Environment:
+  #       Variables:
+  #         HOST: !Ref DBHost
+  #         DATABASE: !Ref Database
+  #         USERNAME: !Ref Username
+  #         PASSWORD: !Ref Password
+  #     Events:
+  #       GetRoot:
+  #         Type: Api
+  #         Properties:
+  #           Path: /patient/
+  #           Method: get
+  #           RestApiId: !ImportValue AppApiId
+
+  GetActivityFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: get_a_patient
-      Handler: handler.lambda_handler
+      Handler: app.lambda_handler
       Runtime: python3.8
-      Layers:
-        - !Ref ODBCLayerArn
-      Role: !ImportValue LambdaExecutionRoleArn
       Environment:
         Variables:
-          SERVER: !Ref Server
+          HOST: !Ref DBHost
           DATABASE: !Ref Database
           USERNAME: !Ref Username
           PASSWORD: !Ref Password
       Events:
-        GetRoot:
+        CreateActivities:
           Type: Api
           Properties:
-            Path: /patient/
+            Path: /activities/{id}
             Method: get
-            RestApiId: !ImportValue AppApiId
+      Policies:
+        - Statement:
+        - Effect: Allow
+          Action:
+            - "rds:*"
+          Resource: "*"
 # Outputs:
 #   GetAPatientFunctionArn:
 #     Description: "ARN of the GetAPatient function"
