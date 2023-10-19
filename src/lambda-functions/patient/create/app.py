@@ -10,10 +10,13 @@ conn = pymysql.connect(host=os.environ.get('HOST'),
 cursor = conn.cursor()
 
 
+def get_value_or_none(data, key):
+    return data[key] if key in data else None
+
+
 def lambda_handler(event, context):
     global conn, cursor
 
-    # Kiểm tra request method và nội dung body
     if event['httpMethod'] != 'POST' or not event.get('body'):
         return {
             'statusCode': 400,
@@ -24,25 +27,31 @@ def lambda_handler(event, context):
     try:
         data = json.loads(event['body'])
 
-        # Insert dữ liệu vào bảng patient
+        if not data.get('patient_name') or not data.get('phone_number'):
+            return {
+                'statusCode': 400,
+                'headers': {},
+                'body': json.dumps({'message': 'patient_name and phone_number are required fields'})
+            }
+
         query = """INSERT INTO `patient` (`patient_name`, `date_of_birth`, `gender`, `phone_number`, `full_medical_history`, 
-                 `dental_medical_history`, `email`, `address`, `description`, `profile_image`)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+                `dental_medical_history`, `email`, `address`, `description`, `profile_image`)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
 
         cursor.execute(query, (data.get('patient_name'),
-                               data.get('date_of_birth'),
-                               data.get('gender'),
+                               get_value_or_none(data, 'date_of_birth'),
+                               get_value_or_none(data, 'gender'),
                                data.get('phone_number'),
-                               data.get('full_medical_history'),
-                               data.get('dental_medical_history'),
-                               data.get('email'),
-                               data.get('address'),
-                               data.get('description'),
-                               data.get('profile_image')))
+                               get_value_or_none(data, 'full_medical_history'),
+                               get_value_or_none(
+                                   data, 'dental_medical_history'),
+                               get_value_or_none(data, 'email'),
+                               get_value_or_none(data, 'address'),
+                               get_value_or_none(data, 'description'),
+                               get_value_or_none(data, 'profile_image')))
 
         conn.commit()
 
-        # Đáp trả thành công
         return {
             'statusCode': 201,
             'headers': {},
