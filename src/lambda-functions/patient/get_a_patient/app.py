@@ -8,6 +8,16 @@ conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
 cursor = conn.cursor()
 
 
+def transform_row(row):
+    transformed_row = []
+    for value in row:
+        if isinstance(value, datetime.date):
+            transformed_row.append(str(value))
+        else:
+            transformed_row.append(value)
+    return tuple(transformed_row)
+
+
 def lambda_handler(event, context):
     if ('pathParameters' not in event or
             event['httpMethod'] != 'GET'):
@@ -20,16 +30,9 @@ def lambda_handler(event, context):
     patient_id = event['pathParameters']['id']
     query = "SELECT * FROM `patient` WHERE patient_id = %s;"
     cursor.execute(query, (patient_id))
+    rows = cursor.fetchall()
 
-    column_names = [desc[0] for desc in cursor.description]
-
-    result = []
-    for row in cursor.fetchall():
-        row_list = list(row)
-        if isinstance(row_list[11], (datetime.date, datetime.datetime)):
-            row_list[11] = row_list[11].isoformat()
-
-        result.append(dict(zip(column_names, row_list)))
+    transformed_rows = [transform_row(row) for row in rows]
 
     cursor.close()
     conn.close()
@@ -37,5 +40,5 @@ def lambda_handler(event, context):
     return {
         'statusCode': 200,
         'headers': {},
-        'body': json.dumps(result)
+        'body': json.dumps(transformed_rows)
     }
