@@ -27,7 +27,7 @@ def lambda_handler(event, context):
         return {
             'statusCode': 400,
             'headers': {},
-            'body': json.dumps({'msg': 'Bad Request'})
+            'body': json.dumps({'message': 'Bad Request'})
         }
 
     patient_id = event['pathParameters']['id']
@@ -51,7 +51,7 @@ def lambda_handler(event, context):
         return {
             'statusCode': 404,
             'headers': {},
-            'body': json.dumps({'msg': 'Patient not found'}, ensure_ascii=False)
+            'body': json.dumps({'message': 'Patient not found'}, ensure_ascii=False)
         }
 
     return {

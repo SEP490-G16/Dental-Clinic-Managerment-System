@@ -14,7 +14,8 @@ CREATE TABLE `patient` (
     `address` VARCHAR(500),
     `description` TEXT,
     `profile_image` VARCHAR(100),
-    `created_date` DATETIME DEFAULT CURRENT_TIMESTAMP
+    `created_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `active` TINYINT(1) DEFAULT 1;
 );
 
 CREATE INDEX `idx_patient_name` ON `patient`(`patient_name`);

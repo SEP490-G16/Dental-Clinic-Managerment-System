@@ -20,29 +20,6 @@ Parameters:
     Type: String
 
 Resources:
-  # GetAPatientFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: get_a_patient
-  #     Handler: handler.lambda_handler
-  #     Runtime: python3.8
-  #     Layers:
-  #       - !Ref ODBCLayerArn
-  #     Role: !ImportValue LambdaExecutionRoleArn
-  #     Environment:
-  #       Variables:
-  #         HOST: !Ref DBHost
-  #         DATABASE: !Ref Database
-  #         USERNAME: !Ref Username
-  #         PASSWORD: !Ref Password
-  #     Events:
-  #       GetRoot:
-  #         Type: Api
-  #         Properties:
-  #           Path: /patient/
-  #           Method: get
-  #           RestApiId: !ImportValue AppApiId
-
   MyApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -53,10 +30,10 @@ Resources:
           MyCognitoAuthorizer:
             UserPoolArn: !Ref UserPoolArn
 
-  GetActivityFunction:
+  GetAPatientFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get_a_patient
+      CodeUri: get
       Handler: app.lambda_handler
       Runtime: python3.8
       Layers:
@@ -72,10 +49,39 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /activities/{id}
+            Path: /patient/{id}
             Method: get
       Policies:
-        - Version: "2012-10-17" # IAM Policy Version
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
+  CreateAPatientFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /patient
+            Method: post
+      Policies:
+        - Version: "2012-10-17"
           Statement:
             - Effect: Allow
               Action:
