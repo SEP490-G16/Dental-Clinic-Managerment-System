@@ -45,6 +45,8 @@ Resources:
       CodeUri: get_a_patient
       Handler: app.lambda_handler
       Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
       Environment:
         Variables:
           HOST: !Ref DBHost

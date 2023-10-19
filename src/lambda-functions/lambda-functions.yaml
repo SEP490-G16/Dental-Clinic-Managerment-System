@@ -30,7 +30,7 @@ Resources:
         Database: !Ref Database
         Username: !Ref Username
         Password: !Ref Password
-        ODBCLayerArn: !Ref ODBCLayerArn
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
 
   # StaffFunctions:
   #   Type: AWS::CloudFormation::Stack
