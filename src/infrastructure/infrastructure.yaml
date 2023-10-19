@@ -26,14 +26,14 @@ Resources:
     Properties:
       TemplateURL: ./roles.yaml
 
-  ApiGatewayStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: RolesStack
-    Properties:
-      TemplateURL: ./api-gateway.yaml
-      Parameters:
-        StageName: !Ref StageName
-        UserPoolId: !GetAtt CognitoStack.Outputs.UserPoolId
+  # ApiGatewayStack:
+  #   Type: AWS::CloudFormation::Stack
+  #   DependsOn: RolesStack
+  #   Properties:
+  #     TemplateURL: ./api-gateway.yaml
+  #     Parameters:
+  #       StageName: !Ref StageName
+  #       UserPoolId: !GetAtt CognitoStack.Outputs.UserPoolId
 
 Outputs:
   CognitoUserPoolArn:
@@ -42,10 +42,10 @@ Outputs:
   CognitoUserPoolId:
     Value: !GetAtt CognitoStack.Outputs.UserPoolId
 
-  AppApiRootUrl:
-    Description: "URL for the root of the API Gateway"
-    Value: !GetAtt ApiGatewayStack.Outputs.AppApiRootUrl
+  # AppApiRootUrl:
+  #   Description: "URL for the root of the API Gateway"
+  #   Value: !GetAtt ApiGatewayStack.Outputs.AppApiRootUrl
 
-  AppApiId:
-    Description: "ID for the API Gateway"
-    Value: !GetAtt ApiGatewayStack.Outputs.AppApiId
+  # AppApiId:
+  #   Description: "ID for the API Gateway"
+  #   Value: !GetAtt ApiGatewayStack.Outputs.AppApiId
