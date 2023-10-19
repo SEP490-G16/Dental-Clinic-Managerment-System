@@ -30,17 +30,18 @@ def lambda_handler(event, context):
 
     patient_id = event['pathParameters']['id']
     query = "SELECT * FROM `patient` WHERE patient_id = %s;"
-    try:
-        cursor.execute(query, (patient_id))
-    except pymysql.OperationalError:
-        conn.ping(reconnect=True)
-        cursor.execute(query, (patient_id))
+    cursor.execute(query, (patient_id))
+    # try:
+    #     cursor.execute(query, (patient_id))
+    # except pymysql.OperationalError:
+    #     conn.ping(reconnect=True)
+    #     cursor.execute(query, (patient_id))
     rows = cursor.fetchall()
 
     transformed_rows = [transform_row(row) for row in rows]
 
-    cursor.close()
-    conn.close()
+    # cursor.close()
+    # conn.close()
 
     # Kiểm tra nếu không tìm thấy bản ghi nào
     if len(transformed_rows) == 0:
