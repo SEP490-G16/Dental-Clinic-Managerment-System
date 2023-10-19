@@ -53,6 +53,8 @@ Resources:
     Properties:
       TemplateURL: ./lambda-functions/lambda-functions.yaml
       Parameters:
+        StageName: !Ref StageName
+        UserPoolArn: !GetAtt InfrastructureStack.Outputs.CognitoUserPoolArn
         DBHost: !Ref DBHost
         Database: !Ref Database
         Username: !Ref DBUsername

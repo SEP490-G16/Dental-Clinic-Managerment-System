@@ -3,6 +3,10 @@ Transform: "AWS::Serverless-2016-10-31"
 Description: "Patient functions stack."
 
 Parameters:
+  StageName:
+    Type: String
+  UserPoolArn:
+    Type: String
   DBHost:
     Type: String
   Database:
@@ -38,6 +42,16 @@ Resources:
   #           Path: /patient/
   #           Method: get
   #           RestApiId: !ImportValue AppApiId
+
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !Ref UserPoolArn
 
   GetActivityFunction:
     Type: AWS::Serverless::Function
