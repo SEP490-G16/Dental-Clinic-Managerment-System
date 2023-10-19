@@ -71,6 +71,7 @@ Resources:
         CreateActivities:
           Type: Api
           Properties:
+            RestApiId: !Ref MyApi
             Path: /activities/{id}
             Method: get
       Policies:
