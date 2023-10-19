@@ -19,6 +19,7 @@ def transform_row(row):
 
 
 def lambda_handler(event, context):
+    global conn, cursor
     if ('pathParameters' not in event or
             event['httpMethod'] != 'GET'):
         return {
@@ -29,7 +30,11 @@ def lambda_handler(event, context):
 
     patient_id = event['pathParameters']['id']
     query = "SELECT * FROM `patient` WHERE patient_id = %s;"
-    cursor.execute(query, (patient_id))
+    try:
+        cursor.execute(query, (patient_id))
+    except pymysql.OperationalError:
+        conn.ping(reconnect=True)
+        cursor.execute(query, (patient_id))
     rows = cursor.fetchall()
 
     transformed_rows = [transform_row(row) for row in rows]
