@@ -21,6 +21,8 @@ def transform_row(row):
 def lambda_handler(event, context):
     global conn, cursor
     if ('pathParameters' not in event or
+            'id' not in event['pathParameters'] or
+            not event['pathParameters']['id'] or
             event['httpMethod'] != 'GET'):
         return {
             'statusCode': 400,
@@ -37,8 +39,9 @@ def lambda_handler(event, context):
     #     conn.ping(reconnect=True)
     #     cursor.execute(query, (patient_id))
     rows = cursor.fetchall()
-
-    transformed_rows = [transform_row(row) for row in rows]
+    column_names = [column[0] for column in cursor.description]
+    transformed_rows = [
+        dict(zip(column_names, transform_row(row))) for row in rows]
 
     # cursor.close()
     # conn.close()
