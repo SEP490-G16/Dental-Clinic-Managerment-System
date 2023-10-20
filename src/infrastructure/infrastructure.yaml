@@ -26,6 +26,14 @@ Resources:
     Properties:
       TemplateURL: ./roles.yaml
 
+  DynamoDBStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./dynamodb.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+
 Outputs:
   CognitoUserPoolArn:
     Value: !GetAtt CognitoStack.Outputs.UserPoolArn

@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: An Amazon API Gateway REST API that integrates with an Amazon DynamoDB table.
+
+Parameters:
+  AppName:
+    Type: String
+  StageName:
+    Type: String
+
+Resources:
+  DynamoDBTable:
+    TableName: !Sub "${StageName}-${AppName}-db"
+    Type: AWS::DynamoDB::Table
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 25
+        WriteCapacityUnits: 25
+      AttributeDefinitions:
+        - AttributeName: "type"
+          AttributeType: "S"
+        - AttributeName: "epoch"
+          AttributeType: "N"
+        - AttributeName: "information"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "type"
+          KeyType: "HASH"
+        - AttributeName: "epoch"
+          KeyType: "RANGE"
+
+Outputs:
+  DynamoDBTableArn:
+    Description: "ARN của bảng DynamoDB"
+    Value: !GetAtt DynamoDBTable.Arn
