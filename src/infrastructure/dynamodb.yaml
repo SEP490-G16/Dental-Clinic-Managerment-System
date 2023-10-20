@@ -10,9 +10,9 @@ Parameters:
 
 Resources:
   DynamoDBTable:
-    TableName: !Sub "${StageName}-${AppName}-db"
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: !Sub "${StageName}-${AppName}-db"
       ProvisionedThroughput:
         ReadCapacityUnits: 25
         WriteCapacityUnits: 25
