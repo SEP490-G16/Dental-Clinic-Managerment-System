@@ -36,6 +36,9 @@ Parameters:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
     Default: "arn:aws:lambda:ap-southeast-1:014183400304:layer:PyMySQL:1"
+  AppName:
+    Type: String
+    Default: "dcms"
 
 Resources:
   InfrastructureStack:
@@ -45,7 +48,7 @@ Resources:
       Parameters:
         TableName: !Sub "${StageName}-nguyen-tran-clinic"
         StageName: !Sub ${StageName}
-        AppName: "dmcs"
+        AppName: !Sub ${AppName}
 
   LambdaFunctions:
     Type: AWS::CloudFormation::Stack
