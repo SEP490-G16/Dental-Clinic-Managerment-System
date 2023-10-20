@@ -21,8 +21,6 @@ Resources:
           AttributeType: "S"
         - AttributeName: "epoch"
           AttributeType: "N"
-        - AttributeName: "information"
-          AttributeType: "S"
       KeySchema:
         - AttributeName: "type"
           KeyType: "HASH"
