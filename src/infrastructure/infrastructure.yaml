@@ -20,12 +20,6 @@ Resources:
         StageName: !Ref StageName
         AppName: !Ref AppName
 
-  RolesStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: CognitoStack
-    Properties:
-      TemplateURL: ./roles.yaml
-
   DynamoDBStack:
     Type: AWS::Serverless::Application
     Properties:
