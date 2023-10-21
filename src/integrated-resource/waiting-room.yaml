@@ -74,5 +74,5 @@ Resources:
           - StatusCode: "200"
             ResponseTemplates:
               application/json: "{}"
-      WaitingRoomResource:
+      MethodResponses:
         - StatusCode: "200"
