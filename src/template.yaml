@@ -89,21 +89,23 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+        - AttributeName: artist
+          KeyType: RANGE
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-      GlobalSecondaryIndexes:
-        - IndexName: Artist-Index
-          KeySchema:
-            - AttributeName: artist
-              KeyType: HASH
-          Projection:
-            ProjectionType: INCLUDE
-            NonKeyAttributes:
-              - album
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
+      # GlobalSecondaryIndexes:
+      #   - IndexName: Artist-Index
+      #     KeySchema:
+      #       - AttributeName: artist
+      #         KeyType: HASH
+      #     Projection:
+      #       ProjectionType: INCLUDE
+      #       NonKeyAttributes:
+      #         - album
+      #     ProvisionedThroughput:
+      #       ReadCapacityUnits: 5
+      #       WriteCapacityUnits: 5
   APIGatewayRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -200,7 +202,7 @@ Resources:
           # Using single-line, stringified JSON as the mapping template
           # Use $util.urlDecode($input.params('pathname')) to decode if the url path value contains spaces
           # A + or %20 may be used as a space in the url
-          application/json: '{"TableName":"Music","IndexName":"Artist-Index","KeyConditionExpression":"artist=:v1","ExpressionAttributeValues":{":v1":{"S":"$util.urlDecode($input.params(''artist''))"}}}'
+          application/json: '{"TableName":"Music","KeyConditionExpression":"id=:v1 AND artist=:v2","ExpressionAttributeValues":{":v1":{"S":"$util.urlDecode($input.params(''artist''))"},":v2":{"S":"Beatles"}}}'
         IntegrationResponses:
           - StatusCode: "200"
             ResponseTemplates:
