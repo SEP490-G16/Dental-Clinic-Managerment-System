@@ -45,7 +45,7 @@ Resources:
     Properties:
       Name: MyCognitoAuthorizer
       Type: COGNITO_USER_POOLS
-      RestApiId: !Ref AppApi
+      RestApiId: !Ref Api
       IdentitySource: method.request.header.Authorization
       ProviderARNs:
         - !Ref UserPoolArn
