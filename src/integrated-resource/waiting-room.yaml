@@ -38,7 +38,7 @@ Resources:
   Api:
     Type: "AWS::ApiGateway::RestApi"
     Properties:
-      Name: !Sub "${Stage}-${AppName}-api"
+      Name: !Sub "${StageName}-${AppName}-api"
       ApiKeySourceType: HEADER
       Auth:
         DefaultAuthorizer: MyCognitoAuthorizer
