@@ -81,7 +81,7 @@ Resources:
               security:
                 - MyCognitoAuthorizer: []
 
-          /waiting-room/{epoch}:
+          /waiting-room/{time-start}/{time-end}:
             get:
               x-amazon-apigateway-integration:
                 type: "aws"
@@ -95,14 +95,13 @@ Resources:
                       - |
                         {
                           "TableName": "${TableName}",
-                          "KeyConditionExpression": "type = :typeVal AND epoch BETWEEN :epochStart AND :epochEnd",
+                          "KeyConditionExpression": "type = :typeVal AND epoch BETWEEN :timeStart AND :timeEnd",
                           "ExpressionAttributeValues": {
                             ":typeVal": {"S": "a"},
-                            ":epochStart": {"N": "$input.params('epoch')"},
-                            ":epochEnd": {"N": "${endEpoch}"}
+                            ":timeStart": {"N": "$input.params('time-start')"},
+                            ":timeEnd": {"N": "$input.params('time-end')"}
                           }
                         }
-                      - endEpoch: !Sub "${epoch + 86400}"
                 responses:
                   default:
                     statusCode: "200"
