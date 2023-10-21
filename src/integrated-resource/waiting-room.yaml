@@ -60,7 +60,7 @@ Resources:
                 passthroughBehavior: "WHEN_NO_TEMPLATES"
                 requestTemplates:
                   application/json:
-                    "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"$input.path(''$.type'')"},"epoch":{"S":"$input.path(''$.epoch'')"},"info":{"S":"$input.path(''$.info'')"}}}'
+                    "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"$input.path(''$.type'')"},"epoch":{"N":"$input.path(''$.epoch'')"},"info":{"S":"$util.escapeJavaScript($input.path(''$.info''))"}}}'
                 responses:
                   default:
                     statusCode: "200"
