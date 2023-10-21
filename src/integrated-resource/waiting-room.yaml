@@ -77,7 +77,7 @@ Resources:
         method.request.path.end-time: true
       Integration:
         Type: AWS
-        Credentials: !GetAtt APIGatewayRole.Arn
+        Credentials: !GetAtt APIGatewayIntegreatedRole.Arn
         IntegrationHttpMethod: POST
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         PassthroughBehavior: WHEN_NO_TEMPLATES
