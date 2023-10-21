@@ -106,7 +106,7 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${DEV_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides StageName=${DEV_STACK_NAME} \
-            --no-rollback
+            --disable-rollback
 
   build-and-package:
     if: github.ref == 'refs/heads/main'
@@ -200,7 +200,7 @@ jobs:
             --s3-bucket ${DEV_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${DEV_CLOUDFORMATION_EXECUTION_ROLE} \
-            --no-rollback
+            --disable-rollback
 
   integration-test:
     if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'prod')
@@ -248,4 +248,4 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides StageName=${PROD_STACK_NAME} \
-            --no-rollback
+            --disable-rollback
