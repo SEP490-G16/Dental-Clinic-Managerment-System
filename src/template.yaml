@@ -75,6 +75,9 @@ Parameters:
     Type: String
     Default: v1
     Description: Name of API stage.
+  TableName:
+    Type: String
+    Default: Music
 Resources:
   DynamoDBTable:
     Type: "AWS::DynamoDB::Table"
@@ -163,7 +166,10 @@ Resources:
           # Using single-line, stringified JSON as the mapping template
           # Example body when making API request: {"artist": "The Beatles", "album": "Abbey Road"}
           # Use the unique id of the API context variable (eg: $context.requestId) as the DynamoDB item id
-          application/json: '{"TableName":"Music","Item":{"id":{"S":"$context.requestId"},"artist":{"S":"$input.path(''$.artist'')"},"album":{"S":"$input.path(''$.album'')"}}}'
+          application/json:
+            {
+              "Fn::Sub": '{"TableName":"${TableName}","Item":{"id":{"S":"$context.requestId"},"artist":{"S":"$input.path(''$.artist'')"},"album":{"S":"$input.path(''$.album'')"}}}',
+            }
         IntegrationResponses:
           - StatusCode: "200"
             ResponseTemplates:
