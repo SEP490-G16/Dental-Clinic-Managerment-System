@@ -58,19 +58,10 @@ Resources:
                 credentials: !GetAtt APIGatewayIntegreatedRole.Arn
                 httpMethod: "POST"
                 uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
-                passthroughBehavior: "WHEN_NO_TEMPLATES"
+                passthroughBehavior: "WHEN_NO_MATCH"
                 requestTemplates:
                   application/json:
                     "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"$input.path(''$.type'')"},"epoch":{"N":"$input.path(''$.epoch'')"},"info":{"S":"$util.escapeJavaScript($input.path(''$.info''))"}}}'
-                # responses:
-                #   default:
-                #     statusCode: "200"
-                #     responseTemplates:
-                #       application/json: "{}"
-                IntegrationResponses:
-                  - StatusCode: "200"
-                    ResponseTemplates:
-                      application/json: "{}"
               security:
                 - MyCognitoAuthorizer: []
 
@@ -81,26 +72,21 @@ Resources:
                 credentials: !GetAtt APIGatewayIntegreatedRole.Arn
                 httpMethod: "POST"
                 uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
-                passthroughBehavior: "WHEN_NO_TEMPLATES"
+                passthroughBehavior: "WHEN_NO_MATCH"
                 requestTemplates:
                   application/json:
                     "Fn::Sub": '{
                       "TableName": "${TableName}",
-                      "KeyConditionExpression": "type = :typeVal AND epoch BETWEEN :timeStart AND :timeEnd",
+                      "KeyConditionExpression": "#typeAttr = :typeVal AND epoch BETWEEN :timeStart AND :timeEnd",
                       "ExpressionAttributeValues": {
                       ":typeVal": {"S": "a"},
                       ":timeStart": {"N": "$input.params(''time-start'')"},
                       ":timeEnd": {"N": "$input.params(''time-end'')"}
+                      },
+                      "ExpressionAttributeNames": {
+                      "#typeAttr": "type"
                       }
                       }'
-                IntegrationResponses:
-                  - StatusCode: "200"
-                    ResponseTemplates:
-                      # Modify the response of the DynamoDB Query before sending back to the caller
-                      # Using single-line Velocity Template Language (VTL) code as the mapping template
-                      # \n represents a new line, \t represents a tab character, \" represents a single quote character
-                      # Example response: {"music":[{"id":"38bfb57e-a5a8-4fed-9a4f-391d66d5e987","artist":"The Beatles","album":"Abbey Road"}]}
-                      application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"waiting-room\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"type\": \"$field.type.S\",\n\t\t\t\"epoch\": \"$field.epoch.N\",\n\t\t\t\"info\": \"$field.infor.S\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
               security:
                 - MyCognitoAuthorizer: []
         securityDefinitions:
