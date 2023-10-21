@@ -38,7 +38,6 @@ Resources:
     Type: "AWS::ApiGateway::RestApi"
     Properties:
       Name: !Sub "${AppName}"
-      StageName: !Ref StageName
 
   AuthorizersCognitoUserPools:
     Type: AWS::ApiGateway::Authorizer
@@ -92,6 +91,14 @@ Resources:
               application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"appointment\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"type\": \"$field.type.S\",\n\t\t\t\"epoch\": \"$field.epoch.N\",\n\t\t\t\"info\": \"$field.info.S\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
       MethodResponses:
         - StatusCode: "200"
+
+  ApiDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    DependsOn:
+      - WaittingRoomMethodGet
+    Properties:
+      RestApiId: !Ref Api
+      StageName: !Sub "${StageName}"
   # Api:
   #   Type: "AWS::Serverless::Api"
   #   Properties:
