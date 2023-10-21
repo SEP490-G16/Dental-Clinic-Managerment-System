@@ -91,17 +91,15 @@ Resources:
                 passthroughBehavior: "WHEN_NO_TEMPLATES"
                 requestTemplates:
                   application/json:
-                    "Fn::Sub":
-                      - |
-                        {
-                          "TableName": "${TableName}",
-                          "KeyConditionExpression": "type = :typeVal AND epoch BETWEEN :timeStart AND :timeEnd",
-                          "ExpressionAttributeValues": {
-                            ":typeVal": {"S": "a"},
-                            ":timeStart": {"N": "$input.params('time-start')"},
-                            ":timeEnd": {"N": "$input.params('time-end')"}
-                          }
-                        }
+                    "Fn::Sub": '{
+                      "TableName": "${TableName}",
+                      "KeyConditionExpression": "type = :typeVal AND epoch BETWEEN :timeStart AND :timeEnd",
+                      "ExpressionAttributeValues": {
+                      ":typeVal": {"S": "a"},
+                      ":timeStart": {"N": "$input.params(''time-start'')"},
+                      ":timeEnd": {"N": "$input.params(''time-end'')"}
+                      }
+                      }'
                 responses:
                   default:
                     statusCode: "200"
