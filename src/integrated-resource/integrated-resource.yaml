@@ -15,7 +15,7 @@ Parameters:
 Resources:
   WaitingRoomStack:
     Type: AWS::CloudFormation::Stack
-    Properties: waiting_room.yaml
+    Properties: waiting-room.yaml
     Parameters:
       StageName: !Ref StageName
       AppName: !Ref AppName
