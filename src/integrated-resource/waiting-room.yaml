@@ -36,7 +36,7 @@ Resources:
                 Resource: "*"
 
   Api:
-    Type: "AWS::ApiGateway::Api"
+    Type: "AWS::Serverless::Api"
     Properties:
       StageName: !Ref StageName
       Name: !Sub "${StageName}-${AppName}-api"
