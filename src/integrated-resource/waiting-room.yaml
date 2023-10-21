@@ -34,67 +34,129 @@ Resources:
                 Action:
                   - "dynamodb:*"
                 Resource: "*"
-
   Api:
-    Type: "AWS::Serverless::Api"
+    Type: "AWS::ApiGateway::RestApi"
     Properties:
+      Name: !Sub "${AppName}"
       StageName: !Ref StageName
-      Name: !Sub "${StageName}-${AppName}-api"
-      Auth:
-        DefaultAuthorizer: MyCognitoAuthorizer
-        Authorizers:
-          MyCognitoAuthorizer:
-            UserPoolArn: !Ref UserPoolArn
-      DefinitionBody:
-        swagger: "2.0"
-        info:
-          title: !Ref AppName
-        basePath: /waiting-room
-        paths:
-          /:
-            post:
-              x-amazon-apigateway-integration:
-                type: "aws"
-                credentials: !GetAtt APIGatewayIntegreatedRole.Arn
-                httpMethod: "POST"
-                uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
-                passthroughBehavior: "WHEN_NO_MATCH"
-                requestTemplates:
-                  application/json:
-                    "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"$input.path(''$.type'')"},"epoch":{"N":"$input.path(''$.epoch'')"},"info":{"S":"$util.escapeJavaScript($input.path(''$.info''))"}}}'
-              security:
-                - MyCognitoAuthorizer: []
 
-          /{time-start}/{time-end}:
-            get:
-              x-amazon-apigateway-integration:
-                type: "aws"
-                credentials: !GetAtt APIGatewayIntegreatedRole.Arn
-                httpMethod: "POST"
-                uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
-                passthroughBehavior: "WHEN_NO_MATCH"
-                requestTemplates:
-                  application/json:
-                    "Fn::Sub": '{
-                      "TableName": "${TableName}",
-                      "KeyConditionExpression": "#typeAttr = :typeVal AND epoch BETWEEN :timeStart AND :timeEnd",
-                      "ExpressionAttributeValues": {
-                      ":typeVal": {"S": "a"},
-                      ":timeStart": {"N": "$input.params(''time-start'')"},
-                      ":timeEnd": {"N": "$input.params(''time-end'')"}
-                      },
-                      "ExpressionAttributeNames": {
-                      "#typeAttr": "type"
-                      }
-                      }'
-              security:
-                - MyCognitoAuthorizer: []
-        securityDefinitions:
-          MyCognitoAuthorizer:
-            type: "apiKey"
-            name: "Authorization"
-            in: "header"
-            x-amazon-apigateway-authorizer:
-              type: "cognito_user_pools"
-              providerARNs:
-                - !Ref UserPoolArn
+  AuthorizersCognitoUserPools:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: MyCognitoAuthorizer
+      Type: COGNITO_USER_POOLS
+      RestApiId: !Ref AppApi
+      IdentitySource: method.request.header.Authorization
+      ProviderARNs:
+        - !Ref UserPoolArn
+
+  WaitingRoomResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: "waiting-room"
+
+  GetWaitingRoomResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.WaitingRoomResource
+      PathPart: "{start-time}/{end-time}"
+
+  WaittingRoomMethodGet:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref GetWaitingRoomResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref AuthorizersCognitoUserPools
+      RequestParameters:
+        method.request.path.start-time: true
+        method.request.path.end-time: true
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt APIGatewayRole.Arn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.start-time: method.request.path.start-time
+          integration.request.path.end-time: method.request.path.end-time
+        RequestTemplates:
+          application/json: '{"TableName":"${TableName}","KeyConditionExpression":"type=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))",":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}}}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"appointment\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"type\": \"$field.type.S\",\n\t\t\t\"epoch\": \"$field.epoch.N\",\n\t\t\t\"info\": \"$field.info.S\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
+      MethodResponses:
+        - StatusCode: "200"
+  # Api:
+  #   Type: "AWS::Serverless::Api"
+  #   Properties:
+  #     StageName: !Ref StageName
+  #     Name: !Sub "${StageName}-${AppName}-api"
+  #     Auth:
+  #       DefaultAuthorizer: MyCognitoAuthorizer
+  #       Authorizers:
+  #         MyCognitoAuthorizer:
+  #           UserPoolArn: !Ref UserPoolArn
+  #     DefinitionBody:
+  #       swagger: "2.0"
+  #       info:
+  #         title: !Ref AppName
+  #       basePath: /waiting-room
+  #       paths:
+  #         /:
+  #           post:
+  #             x-amazon-apigateway-integration:
+  #               type: "aws"
+  #               credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+  #               httpMethod: "POST"
+  #               uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
+  #               passthroughBehavior: "WHEN_NO_MATCH"
+  #               requestTemplates:
+  #                 application/json:
+  #                   "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"$input.path(''$.type'')"},"epoch":{"N":"$input.path(''$.epoch'')"},"info":{"S":"$util.escapeJavaScript($input.path(''$.info''))"}}}'
+  #               responses:
+  #                 default:
+  #                   statusCode: "200"
+  #                   responseTemplates:
+  #                     application/json: "{}"
+  #             responses:
+  #               "200":
+  #                 description: "200 response"
+  #             security:
+  #               - MyCognitoAuthorizer: []
+
+  #         /{time-start}/{time-end}:
+  #           get:
+  #             x-amazon-apigateway-integration:
+  #               type: "aws"
+  #               credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+  #               httpMethod: "POST"
+  #               uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+  #               passthroughBehavior: "WHEN_NO_TEMPLATES"
+  #               requestTemplates:
+  #                 application/json:
+  #                   "Fn::Sub": '{
+  #                     "TableName": "${TableName}",
+  #                     "KeyConditionExpression": "type = :typeVal AND epoch BETWEEN :timeStart AND :timeEnd",
+  #                     "ExpressionAttributeValues": {
+  #                     ":typeVal": {"S": "a"},
+  #                     ":timeStart": {"N": "$input.params(''time-start'')"},
+  #                     ":timeEnd": {"N": "$input.params(''time-end'')"}
+  #                     }
+  #                     }'
+  #             security:
+  #               - MyCognitoAuthorizer: []
+  #       securityDefinitions:
+  #         MyCognitoAuthorizer:
+  #           type: "apiKey"
+  #           name: "Authorization"
+  #           in: "header"
+  #           x-amazon-apigateway-authorizer:
+  #             type: "cognito_user_pools"
+  #             providerARNs:
+  #               - !Ref UserPoolArn
