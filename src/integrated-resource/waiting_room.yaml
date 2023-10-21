@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "intergreated to resource dynamodb."
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  UserPoolArn:
+    Type: String
+  TableName:
+    Type: String
+
+Resources:
+  APIGatewayIntegreatedRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+      Policies:
+        - PolicyName: APIGatewayDynamoDBPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:*"
+                Resource: "*"
+
+  Api:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: !Sub "${Stage}-${AppName}-api"
+      ApiKeySourceType: HEADER
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !Ref UserPoolArn
+
+  WaitingRoomResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: "waiting-room"
+
+  Post:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref WaitingRoomResource
+      HttpMethod: POST
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+          application/json:
+            {
+              "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"$input.path(''$.type'')"},"epoch":{"S":"$input.path(''$.epoch'')"},"info":{"S":"$input.path(''$.info'')"}}}',
+            }
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: "{}"
+      WaitingRoomResource:
+        - StatusCode: "200"

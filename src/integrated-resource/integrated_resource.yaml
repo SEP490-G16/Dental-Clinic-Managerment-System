@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Nested stack for all intergrated to resource dynamodb"
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  TableName:
+    Type: String
+  UserPoolArn:
+    Type: String
+
+Resources:
+  WaitingRoomStack:
+    Type: AWS::CloudFormation::Stack
+    Properties: waiting_room.yaml
+    Parameters:
+      StageName: !Ref StageName
+      AppName: !Ref AppName
+      UserPoolArn: !Ref UserPoolArn
+      TableName: !Ref TableName

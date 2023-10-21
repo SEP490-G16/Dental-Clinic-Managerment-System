@@ -1,84 +1,85 @@
-# AWSTemplateFormatVersion: "2010-09-09"
-# Transform: AWS::Serverless-2016-10-31
-# Description: >
-#   Dental-Clinic-Managerment-System
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Dental-Clinic-Managerment-System
 
-# Globals:
-#   Function:
-#     Timeout: 5
-#     MemorySize: 256
-#     Architectures:
-#       - x86_64
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 256
+    Architectures:
+      - x86_64
 
-# Parameters:
-#   StageName:
-#     Type: String
-#     Description: Stage name
-#     Default: dev
-#   DBHost:
-#     Type: String
-#     Description: "Database host address"
-#     Default: "nguyen-tran-clinic-db.c4a0pr3rutpd.ap-southeast-1.rds.amazonaws.com"
-#   Database:
-#     Type: String
-#     Description: "Database name"
-#     Default: "nguyen_tran_clinic"
-#   DBUsername:
-#     Type: String
-#     Description: "Database username"
-#     Default: "admin"
-#   DBPassword:
-#     Type: String
-#     Description: "Database password"
-#     Default: "COMK9szvsdq8EyJEC0Hq"
-#     NoEcho: true
-#   PyMySQLLayerArn:
-#     Description: ARN of the Lambda layer to associate with our function
-#     Type: String
-#     Default: "arn:aws:lambda:ap-southeast-1:014183400304:layer:PyMySQL:1"
-#   AppName:
-#     Type: String
-#     Default: "dcms"
-
-# Resources:
-#   InfrastructureStack:
-#     Type: AWS::Serverless::Application
-#     Properties:
-#       Location: ./infrastructure/infrastructure.yaml
-#       Parameters:
-#         TableName: !Sub "${StageName}-nguyen-tran-clinic"
-#         StageName: !Sub ${StageName}
-#         AppName: !Sub ${AppName}
-
-#   LambdaFunctions:
-#     Type: AWS::CloudFormation::Stack
-#     DependsOn: InfrastructureStack
-#     Properties:
-#       TemplateURL: ./lambda-functions/lambda-functions.yaml
-#       Parameters:
-#         StageName: !Ref StageName
-#         UserPoolArn: !GetAtt InfrastructureStack.Outputs.CognitoUserPoolArn
-#         DBHost: !Ref DBHost
-#         Database: !Ref Database
-#         Username: !Ref DBUsername
-#         Password: !Ref DBPassword
-#         PyMySQLLayerArn: !Ref PyMySQLLayerArn
-
-AWSTemplateFormatVersion: 2010-09-09
-Description: An Amazon API Gateway REST API that integrates with an Amazon DynamoDB table.
 Parameters:
-  AppName:
-    Type: String
-    Default: api-music
-    Description: Name of application.
   StageName:
     Type: String
-    Default: v1
-    Description: Name of API stage.
+    Description: Stage name
+    Default: dev
+  DBHost:
+    Type: String
+    Description: "Database host address"
+    Default: "nguyen-tran-clinic-db.c4a0pr3rutpd.ap-southeast-1.rds.amazonaws.com"
+  Database:
+    Type: String
+    Description: "Database name"
+    Default: "nguyen_tran_clinic"
+  DBUsername:
+    Type: String
+    Description: "Database username"
+    Default: "admin"
+  DBPassword:
+    Type: String
+    Description: "Database password"
+    Default: "COMK9szvsdq8EyJEC0Hq"
+    NoEcho: true
+  PyMySQLLayerArn:
+    Description: ARN of the Lambda layer to associate with our function
+    Type: String
+    Default: "arn:aws:lambda:ap-southeast-1:014183400304:layer:PyMySQL:1"
+  AppName:
+    Type: String
+    Default: "dcms"
+  # cho phan test intergrate
   TableName:
     Type: String
     Default: Music
+
 Resources:
+  InfrastructureStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./infrastructure/infrastructure.yaml
+      Parameters:
+        TableName: !Sub "${StageName}-nguyen-tran-clinic"
+        StageName: !Sub ${StageName}
+        AppName: !Sub ${AppName}
+
+  LambdaFunctions:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: InfrastructureStack
+    Properties:
+      TemplateURL: ./lambda-functions/lambda-functions.yaml
+      Parameters:
+        StageName: !Ref StageName
+        UserPoolArn: !GetAtt InfrastructureStack.Outputs.CognitoUserPoolArn
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref DBUsername
+        Password: !Ref DBPassword
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
+
+  IntegratedResourceStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: InfrastructureStack
+    Properties:
+      TemplateURL: ./integrated-resource/integrated-resource.yaml
+      Parameters:
+        StageName: !Ref StageName
+        UserPoolArn: !GetAtt InfrastructureStack.Outputs.CognitoUserPoolArn
+        TableName: !Sub "${StageName}-${AppName}-db"
+        AppName: !Sub ${AppName}
+
+  # phan nay cho demo integrated
   DynamoDBTable:
     Type: "AWS::DynamoDB::Table"
     Properties:
@@ -257,12 +258,3 @@ Resources:
       KeyType: API_KEY
       KeyId: !Ref ApiKey
       UsagePlanId: !Ref ApiUsagePlan
-Outputs:
-  ApiRootUrl:
-    Description: Root Url of the API
-    Value: !Sub
-      - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
-      - ApiId: !Ref Api
-  ApiKeyId:
-    Description: API Key Id
-    Value: !Ref ApiKey
