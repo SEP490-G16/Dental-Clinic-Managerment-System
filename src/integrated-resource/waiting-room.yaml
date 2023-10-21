@@ -60,7 +60,7 @@ Resources:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId: !Ref Api
-      ParentId: !GetAtt Api.WaitingRoomResource
+      ParentId: !Ref WaitingRoomResource
       PathPart: "{start-time}/{end-time}"
 
   WaittingRoomMethodGet:
