@@ -66,9 +66,50 @@ Resources:
                     statusCode: "200"
                     responseTemplates:
                       application/json: "{}"
+              # responses:
+              #   "200":
+              #     description: "200 response"
               responses:
-                "200":
-                  description: "200 response"
+                default:
+                  statusCode: "200"
+                  responseTemplates:
+                    application/json: "{}"
+                ".*":
+                  statusCode: "400"
+                  responseTemplates:
+                    application/json: '{"error":"An error occurred"}'
+              security:
+                - MyCognitoAuthorizer: []
+
+          /waiting-room/{epoch}:
+            get:
+              x-amazon-apigateway-integration:
+                type: "aws"
+                credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+                httpMethod: "POST"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+                passthroughBehavior: "WHEN_NO_TEMPLATES"
+                requestTemplates:
+                  application/json:
+                    "Fn::Sub":
+                      - |
+                        {
+                          "TableName": "${TableName}",
+                          "KeyConditionExpression": "type = :typeVal AND epoch BETWEEN :epochStart AND :epochEnd",
+                          "ExpressionAttributeValues": {
+                            ":typeVal": {"S": "a"},
+                            ":epochStart": {"N": "$input.params('epoch')"},
+                            ":epochEnd": {"N": "${endEpoch}"}
+                          }
+                        }
+                      - endEpoch: !Sub "${epoch + 86400}"
+                responses:
+                  default:
+                    statusCode: "200"
+                  ".*":
+                    statusCode: "400"
+                    responseTemplates:
+                      application/json: '{"error":"An error occurred"}'
               security:
                 - MyCognitoAuthorizer: []
         securityDefinitions:
