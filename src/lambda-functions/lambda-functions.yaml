@@ -5,6 +5,8 @@ Description: "Nested stack for all lambda functions"
 Parameters:
   StageName:
     Type: String
+  AppName:
+    Type: String
   UserPoolArn:
     Type: String
   DBHost:
@@ -31,6 +33,7 @@ Resources:
       TemplateURL: patient/patient.yaml
       Parameters:
         StageName: !Ref StageName
+        AppName: !Ref AppName
         UserPoolArn: !Ref UserPoolArn
         DBHost: !Ref DBHost
         Database: !Ref Database

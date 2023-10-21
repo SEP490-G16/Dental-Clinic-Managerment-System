@@ -36,10 +36,10 @@ Resources:
                 Resource: "*"
 
   Api:
-    Type: "AWS::ApiGateway::RestApi"
+    Type: "AWS::ApiGateway::Api"
     Properties:
+      StageName: !Ref StageName
       Name: !Sub "${StageName}-${AppName}-api"
-      ApiKeySourceType: HEADER
       Auth:
         DefaultAuthorizer: MyCognitoAuthorizer
         Authorizers:

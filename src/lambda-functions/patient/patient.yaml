@@ -5,6 +5,8 @@ Description: "Patient functions stack."
 Parameters:
   StageName:
     Type: String
+  AppName:
+    Type: String
   UserPoolArn:
     Type: String
   DBHost:
@@ -24,6 +26,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref StageName
+      Name: !Sub "${StageName}-${AppName}-api"
       Auth:
         DefaultAuthorizer: MyCognitoAuthorizer
         Authorizers:
