@@ -39,15 +39,15 @@ Resources:
     Properties:
       Name: !Sub "${AppName}"
 
-  AuthorizersCognitoUserPools:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      Name: MyCognitoAuthorizer
-      Type: COGNITO_USER_POOLS
-      RestApiId: !Ref Api
-      IdentitySource: method.request.header.Authorization
-      ProviderARNs:
-        - !Ref UserPoolArn
+  # AuthorizersCognitoUserPools:
+  #   Type: AWS::ApiGateway::Authorizer
+  #   Properties:
+  #     Name: MyCognitoAuthorizer
+  #     Type: COGNITO_USER_POOLS
+  #     RestApiId: !Ref Api
+  #     IdentitySource: method.request.header.Authorization
+  #     ProviderARNs:
+  #       - !Ref UserPoolArn
 
   WaitingRoomResource:
     Type: "AWS::ApiGateway::Resource"
@@ -70,7 +70,7 @@ Resources:
       ResourceId: !Ref GetWaitingRoomResource
       HttpMethod: GET
       AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref AuthorizersCognitoUserPools
+      AuthorizerId: MyCognitoAuthorizer
       RequestParameters:
         method.request.path.start-time: true
         method.request.path.end-time: true
