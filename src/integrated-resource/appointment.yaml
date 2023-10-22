@@ -65,24 +65,22 @@ Resources:
           - StatusCode: "200"
             ResponseTemplates:
               application/json: "{}"
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
       MethodResponses:
         - StatusCode: "200"
         - StatusCode: "400"
-          SelectionPattern: '4\d{2}'
-          ResponseTemplates:
-            application/json: '{"error":"Bad request"}'
+          ResponseModels:
+            application/json: "Error"
         - StatusCode: "500"
-          SelectionPattern: '5\d{2}'
-          ResponseTemplates:
-            application/json: '{"error":"Internal server error"}'
-    # MethodResponses:
-    #   - StatusCode: "200"
-    #   - StatusCode: "400"
-    #     ResponseModels:
-    #       application/json: "Error"
-    #   - StatusCode: "500"
-    #     ResponseModels:
-    #       application/json: "Error"
+          ResponseModels:
+            application/json: "Error"
 
   # AppointmentMethodGet:
   #   Type: "AWS::ApiGateway::Method"
