@@ -28,6 +28,28 @@ Resources:
       ProviderARNs:
         - !Ref UserPoolArn
 
+  APIGatewayIntegreatedRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+      Policies:
+        - PolicyName: APIGatewayDynamoDBPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:*"
+                Resource: "*"
+
   WaitingRoomStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -40,3 +62,18 @@ Resources:
         Api: !Ref Api
         InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
         ApiRootResourceId: !GetAtt Api.RootResourceId
+        APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn
+
+  AppointmentStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./appointment.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        TableName: !Ref TableName
+        Api: !Ref Api
+        InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        ApiRootResourceId: !GetAtt Api.RootResourceId
+        APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn

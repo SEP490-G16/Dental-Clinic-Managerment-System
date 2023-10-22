@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Integrated to resource dynamodb for appointment"
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  UserPoolArn:
+    Type: String
+  TableName:
+    Type: String
+  Api:
+    Type: String
+  InteCognitoAuthorizer:
+    Type: String
+  ApiRootResourceId:
+    Type: String
+  APIGatewayIntegreatedRoleArn:
+    Type: String
+
+Resources:
+  AppointmentResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref ApiRootResourceId
+      PathPart: "appointment"
+
+  AppointmentMethodPost:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+    RestApiId: !Ref Api
+    ResourceId: !Ref AppointmentResource
+    HttpMethod: POST
+    AuthorizationType: COGNITO_USER_POOLS
+    AuthorizerId: !Ref InteCognitoAuthorizer
+    Integration:
+      Type: AWS
+      Credentials: !Ref APIGatewayIntegreatedRoleArn
+      IntegrationHttpMethod: POST
+      Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
+      PassthroughBehavior: WHEN_NO_TEMPLATES
+      RequestTemplates:
+        application/json:
+          {
+            "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"a"},"epoch":{"N":"$input.path(''$.epoch'')"},"name":{"S":"$input.path(''$.name'')"},"procedure":{"S":"$input.path(''$.procedure'')"},"doctor":{"S":"$input.path(''$.doctor'')"}}}',
+          }
+      IntegrationResponses:
+        - StatusCode: "200"
+          ResponseTemplates:
+            application/json: "{}"
+    MethodResponses:
+      - StatusCode: "200"
+
+  # WaittingRoomMethodGet:
+  #   Type: "AWS::ApiGateway::Method"
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     ResourceId: !Ref EndTimeResource
+  #     HttpMethod: GET
+  #     AuthorizationType: COGNITO_USER_POOLS
+  #     AuthorizerId: !Ref InteCognitoAuthorizer
+  #     RequestParameters:
+  #       method.request.path.start-time: true
+  #       method.request.path.end-time: true
+  #     Integration:
+  #       Type: AWS
+  #       Credentials: !Ref APIGatewayIntegreatedRoleArn
+  #       IntegrationHttpMethod: POST
+  #       Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+  #       PassthroughBehavior: WHEN_NO_TEMPLATES
+  #       RequestParameters:
+  #         integration.request.path.start-time: method.request.path.start-time
+  #         integration.request.path.end-time: method.request.path.end-time
+  #       RequestTemplates:
+  #         application/json:
+  #           "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))"},":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
+  #       IntegrationResponses:
+  #         - StatusCode: "200"
+  #           ResponseTemplates:
+  #             application/json: |
+  #               #set($inputRoot = $input.path('$'))
+  #               {
+  #                 "appointment": [
+  #                   #foreach($field in $inputRoot.Items)
+  #                     {
+  #                       "type": "$field.type.S",
+  #                       "epoch": "$field.epoch.N",
+  #                       "info": "$field.info.S"
+  #                     }
+  #                     #if($foreach.hasNext),#end
+  #                   #end
+  #                 ]
+  #               }
+  #         - StatusCode: "400"
+  #           SelectionPattern: '4\d{2}'
+  #           ResponseTemplates:
+  #             application/json: '{"error":"Bad request"}'
+  #         - StatusCode: "500"
+  #           SelectionPattern: '5\d{2}'
+  #           ResponseTemplates:
+  #             application/json: '{"error":"Internal server error"}'
+  #     MethodResponses:
+  #       - StatusCode: "200"
+  #       - StatusCode: "400"
+  #         ResponseModels:
+  #           application/json: "Error"
+  #       - StatusCode: "500"
+  #         ResponseModels:
+  #           application/json: "Error"
+
+  # MusicMethodPost:
+  #   Type: "AWS::ApiGateway::Method"
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     ResourceId: !Ref MusicResource
+  #     HttpMethod: POST
+  #     ApiKeyRequired: true
+  #     AuthorizationType: NONE
+  #     Integration:
+  #       Type: AWS
+  #       Credentials: !GetAtt APIGatewayRole.Arn
+  #       # Should always be POST when integrating with AWS services
+  #       IntegrationHttpMethod: POST
+  #       # More info: https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/
+  #       Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
+  #       PassthroughBehavior: WHEN_NO_TEMPLATES
+  #       RequestTemplates:
+  #         # Build the structure of the request that is sent when calling DynamoDB PutItem
+  #         # Using single-line, stringified JSON as the mapping template
+  #         # Example body when making API request: {"artist": "The Beatles", "album": "Abbey Road"}
+  #         # Use the unique id of the API context variable (eg: $context.requestId) as the DynamoDB item id
+  #         application/json:
+  #           {
+  #             "Fn::Sub": '{"TableName":"${TableName}","Item":{"id":{"S":"$context.requestId"},"artist":{"S":"$input.path(''$.artist'')"},"album":{"S":"$input.path(''$.album'')"}}}',
+  #           }
+  #       IntegrationResponses:
+  #         - StatusCode: "200"
+  #           ResponseTemplates:
+  #             application/json: "{}"
+  #     MethodResponses:
+  #       - StatusCode: "200"
+  # MusicArtistResource:
+  #   Type: "AWS::ApiGateway::Resource"
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     ParentId: !Ref MusicResource
+  #     PathPart: "{artist}"
+
+  ApiDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    DependsOn:
+      - WaittingRoomMethodGet
+    Properties:
+      RestApiId: !Ref Api
+      StageName: !Sub "${StageName}"

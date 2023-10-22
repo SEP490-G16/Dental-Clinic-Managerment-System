@@ -17,30 +17,10 @@ Parameters:
     Type: String
   ApiRootResourceId:
     Type: String
+  APIGatewayIntegreatedRoleArn:
+    Type: String
 
 Resources:
-  APIGatewayIntegreatedRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Action:
-              - "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service:
-                - apigateway.amazonaws.com
-      Policies:
-        - PolicyName: APIGatewayDynamoDBPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:*"
-                Resource: "*"
-
   WaitingRoomResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
@@ -75,7 +55,7 @@ Resources:
         method.request.path.end-time: true
       Integration:
         Type: AWS
-        Credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
         IntegrationHttpMethod: POST
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         PassthroughBehavior: WHEN_NO_TEMPLATES
@@ -84,7 +64,7 @@ Resources:
           integration.request.path.end-time: method.request.path.end-time
         RequestTemplates:
           application/json:
-            "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))"},":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
+            "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"w"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))"},":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
         IntegrationResponses:
           - StatusCode: "200"
             ResponseTemplates:
@@ -164,7 +144,7 @@ Resources:
   #       method.request.path.end-time: true
   #     Integration:
   #       Type: AWS
-  #       Credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+  #       Credentials: !Ref APIGatewayIntegreatedRoleArn
   #       IntegrationHttpMethod: POST
   #       Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
   #       PassthroughBehavior: WHEN_NO_TEMPLATES
@@ -208,7 +188,7 @@ Resources:
   #           post:
   #             x-amazon-apigateway-integration:
   #               type: "aws"
-  #               credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+  #               credentials: !Ref APIGatewayIntegreatedRoleArn
   #               httpMethod: "POST"
   #               uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
   #               passthroughBehavior: "WHEN_NO_MATCH"
@@ -230,7 +210,7 @@ Resources:
   #           get:
   #             x-amazon-apigateway-integration:
   #               type: "aws"
-  #               credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+  #               credentials: !Ref APIGatewayIntegreatedRoleArn
   #               httpMethod: "POST"
   #               uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
   #               passthroughBehavior: "WHEN_NO_TEMPLATES"
