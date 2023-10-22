@@ -22,7 +22,6 @@ def lambda_handler(event, context):
     global conn, cursor
     if ('pathParameters' not in event or
             'phone_prefix' not in event['pathParameters'] or
-            'paging' not in event['pathParameters'] or
             not event['pathParameters']['phone_prefix'] or
             event['httpMethod'] != 'GET'):
         return {
@@ -35,7 +34,7 @@ def lambda_handler(event, context):
 
     query = """
         SELECT * FROM `patient`
-        WHERE phone_number LIKE %s AND active = 1;
+        WHERE phone_number = %s AND active = 1;
     """
     cursor.execute(query, (phone_prefix))
     rows = cursor.fetchall()
