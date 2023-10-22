@@ -84,65 +84,65 @@ Resources:
         ResponseModels:
           application/json: "Error"
 
-  AppointmentMethodGet:
-    Type: "AWS::ApiGateway::Method"
-    Properties:
-      RestApiId: !Ref Api
-      ResourceId: !Ref EndTimeResource
-      HttpMethod: GET
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
-      RequestParameters:
-        method.request.path.start-time: true
-        method.request.path.end-time: true
-      Integration:
-        Type: AWS
-        Credentials: !Ref APIGatewayIntegreatedRoleArn
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestParameters:
-          integration.request.path.start-time: method.request.path.start-time
-          integration.request.path.end-time: method.request.path.end-time
-        RequestTemplates:
-          application/json:
-            "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))"},":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
-        IntegrationResponses:
-          - StatusCode: "200"
-            ResponseTemplates:
-              application/json: |
-                #set($inputRoot = $input.path('$'))
-                {
-                  "appointment": [
-                    #foreach($field in $inputRoot.Items)
-                      {
-                        "type": "$field.type.S",
-                        "epoch": "$field.epoch.N",
-                        "info": "$field.info.S",
-                        "procedure": "$field.procedure.N",
-                        "name": "$field.name.S",
-                        "doctor": "$field.doctor.S"
-                      }
-                      #if($foreach.hasNext),#end
-                    #end
-                  ]
-                }
-          - StatusCode: "400"
-            SelectionPattern: '4\d{2}'
-            ResponseTemplates:
-              application/json: '{"error":"Bad request"}'
-          - StatusCode: "500"
-            SelectionPattern: '5\d{2}'
-            ResponseTemplates:
-              application/json: '{"error":"Internal server error"}'
-      MethodResponses:
-        - StatusCode: "200"
-        - StatusCode: "400"
-          ResponseModels:
-            application/json: "Error"
-        - StatusCode: "500"
-          ResponseModels:
-            application/json: "Error"
+  # AppointmentMethodGet:
+  #   Type: "AWS::ApiGateway::Method"
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     ResourceId: !Ref EndTimeResource
+  #     HttpMethod: GET
+  #     AuthorizationType: COGNITO_USER_POOLS
+  #     AuthorizerId: !Ref InteCognitoAuthorizer
+  #     RequestParameters:
+  #       method.request.path.start-time: true
+  #       method.request.path.end-time: true
+  #     Integration:
+  #       Type: AWS
+  #       Credentials: !Ref APIGatewayIntegreatedRoleArn
+  #       IntegrationHttpMethod: POST
+  #       Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+  #       PassthroughBehavior: WHEN_NO_TEMPLATES
+  #       RequestParameters:
+  #         integration.request.path.start-time: method.request.path.start-time
+  #         integration.request.path.end-time: method.request.path.end-time
+  #       RequestTemplates:
+  #         application/json:
+  #           "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))"},":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
+  #       IntegrationResponses:
+  #         - StatusCode: "200"
+  #           ResponseTemplates:
+  #             application/json: |
+  #               #set($inputRoot = $input.path('$'))
+  #               {
+  #                 "appointment": [
+  #                   #foreach($field in $inputRoot.Items)
+  #                     {
+  #                       "type": "$field.type.S",
+  #                       "epoch": "$field.epoch.N",
+  #                       "info": "$field.info.S",
+  #                       "procedure": "$field.procedure.N",
+  #                       "name": "$field.name.S",
+  #                       "doctor": "$field.doctor.S"
+  #                     }
+  #                     #if($foreach.hasNext),#end
+  #                   #end
+  #                 ]
+  #               }
+  #         - StatusCode: "400"
+  #           SelectionPattern: '4\d{2}'
+  #           ResponseTemplates:
+  #             application/json: '{"error":"Bad request"}'
+  #         - StatusCode: "500"
+  #           SelectionPattern: '5\d{2}'
+  #           ResponseTemplates:
+  #             application/json: '{"error":"Internal server error"}'
+  #     MethodResponses:
+  #       - StatusCode: "200"
+  #       - StatusCode: "400"
+  #         ResponseModels:
+  #           application/json: "Error"
+  #       - StatusCode: "500"
+  #         ResponseModels:
+  #           application/json: "Error"
 
   # WaittingRoomMethodGet:
   #   Type: "AWS::ApiGateway::Method"
