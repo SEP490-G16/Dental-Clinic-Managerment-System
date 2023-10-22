@@ -16,7 +16,7 @@ Resources:
   Api:
     Type: "AWS::ApiGateway::RestApi"
     Properties:
-      Name: !Sub "${StageName}-${AppName}-api"
+      Name: !Sub "${StageName}-${AppName}-integrated-resource-api"
 
   InteCognitoAuthorizer:
     Type: AWS::ApiGateway::Authorizer
