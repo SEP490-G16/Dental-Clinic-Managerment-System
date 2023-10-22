@@ -47,7 +47,7 @@ Resources:
   Api:
     Type: "AWS::ApiGateway::RestApi"
     Properties:
-      Name: !Sub "${AppName}"
+      Name: !Sub "${StageName}-${AppName}-api"
 
   WaitingRoomResource:
     Type: "AWS::ApiGateway::Resource"
