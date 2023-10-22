@@ -13,6 +13,21 @@ Parameters:
     Type: String
 
 Resources:
+  Api:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: !Sub "${StageName}-${AppName}-api"
+
+  InteCognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: InteCognitoAuthorizer
+      Type: COGNITO_USER_POOLS
+      RestApiId: !Ref Api
+      IdentitySource: method.request.header.Authorization
+      ProviderARNs:
+        - !Ref UserPoolArn
+
   WaitingRoomStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -22,3 +37,6 @@ Resources:
         AppName: !Ref AppName
         UserPoolArn: !Ref UserPoolArn
         TableName: !Ref TableName
+        Api: !Ref Api
+        InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        ApiRootResourceId: !GetAtt Api.RootResourceId

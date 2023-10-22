@@ -11,6 +11,12 @@ Parameters:
     Type: String
   TableName:
     Type: String
+  Api:
+    Type: String
+  InteCognitoAuthorizer:
+    Type: String
+  ApiRootResourceId:
+    Type: String
 
 Resources:
   APIGatewayIntegreatedRole:
@@ -34,26 +40,12 @@ Resources:
                 Action:
                   - "dynamodb:*"
                 Resource: "*"
-  InteCognitoAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      Name: InteCognitoAuthorizer
-      Type: COGNITO_USER_POOLS
-      RestApiId: !Ref Api
-      IdentitySource: method.request.header.Authorization
-      ProviderARNs:
-        - !Ref UserPoolArn
-
-  Api:
-    Type: "AWS::ApiGateway::RestApi"
-    Properties:
-      Name: !Sub "${StageName}-${AppName}-api"
 
   WaitingRoomResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId: !Ref Api
-      ParentId: !GetAtt Api.RootResourceId
+      ParentId: !Ref ApiRootResourceId
       PathPart: "waiting-room"
 
   StartTimeResource:
