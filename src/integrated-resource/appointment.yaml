@@ -31,28 +31,28 @@ Resources:
   AppointmentMethodPost:
     Type: "AWS::ApiGateway::Method"
     Properties:
-    RestApiId: !Ref Api
-    ResourceId: !Ref AppointmentResource
-    HttpMethod: POST
-    AuthorizationType: COGNITO_USER_POOLS
-    AuthorizerId: !Ref InteCognitoAuthorizer
-    Integration:
-      Type: AWS
-      Credentials: !Ref APIGatewayIntegreatedRoleArn
-      IntegrationHttpMethod: POST
-      Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
-      PassthroughBehavior: WHEN_NO_TEMPLATES
-      RequestTemplates:
-        application/json:
-          {
-            "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"a"},"epoch":{"N":"$input.path(''$.epoch'')"},"name":{"S":"$input.path(''$.name'')"},"procedure":{"S":"$input.path(''$.procedure'')"},"doctor":{"S":"$input.path(''$.doctor'')"}}}',
-          }
-      IntegrationResponses:
+      RestApiId: !Ref Api
+      ResourceId: !Ref AppointmentResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref InteCognitoAuthorizer
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+          application/json:
+            {
+              "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"a"},"epoch":{"N":"$input.path(''$.epoch'')"},"name":{"S":"$input.path(''$.name'')"},"procedure":{"S":"$input.path(''$.procedure'')"},"doctor":{"S":"$input.path(''$.doctor'')"}}}',
+            }
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
         - StatusCode: "200"
-          ResponseTemplates:
-            application/json: "{}"
-    MethodResponses:
-      - StatusCode: "200"
 
   # WaittingRoomMethodGet:
   #   Type: "AWS::ApiGateway::Method"
@@ -152,7 +152,7 @@ Resources:
   ApiDeployment:
     Type: "AWS::ApiGateway::Deployment"
     DependsOn:
-      - WaittingRoomMethodGet
+      - AppointmentMethodPost
     Properties:
       RestApiId: !Ref Api
       StageName: !Sub "${StageName}"
