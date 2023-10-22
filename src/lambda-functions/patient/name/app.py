@@ -21,8 +21,9 @@ def transform_row(row):
 def lambda_handler(event, context):
     global conn, cursor
     if ('pathParameters' not in event or
-            'id' not in event['pathParameters'] or
-            not event['pathParameters']['id'] or
+            'name_prefix' not in event['pathParameters'] or
+            'paging' not in event['pathParameters'] or
+            not event['pathParameters']['name_prefix'] or
             event['httpMethod'] != 'GET'):
         return {
             'statusCode': 400,
@@ -30,23 +31,29 @@ def lambda_handler(event, context):
             'body': json.dumps({'message': 'Bad Request'})
         }
 
-    patient_id = event['pathParameters']['id']
-    query = "SELECT * FROM `patient` WHERE patient_id = %s;"
-    cursor.execute(query, (patient_id))
-    # try:
-    #     cursor.execute(query, (patient_id))
-    # except pymysql.OperationalError:
-    #     conn.ping(reconnect=True)
-    #     cursor.execute(query, (patient_id))
+    name_prefix = event['pathParameters']['name_prefix']
+    try:
+        page_number = int(event['pathParameters']['paging'])
+        offset = (page_number - 1) * 10
+    except ValueError:
+        return {
+            'statusCode': 400,
+            'headers': {},
+            'body': json.dumps({'message': 'Invalid paging value'})
+        }
+
+    query = """
+        SELECT * FROM `patient`
+        WHERE patient_name LIKE %s AND active = 1
+        ORDER BY created_date DESC
+        LIMIT 11 OFFSET %s;
+    """
+    cursor.execute(query, ("%" + name_prefix + "%", offset))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
     transformed_rows = [
         dict(zip(column_names, transform_row(row))) for row in rows]
 
-    # cursor.close()
-    # conn.close()
-
-    # Kiểm tra nếu không tìm thấy bản ghi nào
     if len(transformed_rows) == 0:
         return {
             'statusCode': 404,
@@ -57,5 +64,5 @@ def lambda_handler(event, context):
     return {
         'statusCode': 200,
         'headers': {},
-        'body': json.dumps(transformed_rows[0], ensure_ascii=False)
+        'body': json.dumps(transformed_rows, ensure_ascii=False)
     }

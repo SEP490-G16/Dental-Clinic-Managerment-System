@@ -20,19 +20,10 @@ Parameters:
   PyMySQLLayerArn:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
+  MyApi:
+    Type: String
 
 Resources:
-  MyApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: !Ref StageName
-      Name: !Sub "${StageName}-${AppName}-api"
-      Auth:
-        DefaultAuthorizer: MyCognitoAuthorizer
-        Authorizers:
-          MyCognitoAuthorizer:
-            UserPoolArn: !Ref UserPoolArn
-
   GetAPatientFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -53,6 +44,64 @@ Resources:
           Properties:
             RestApiId: !Ref MyApi
             Path: /patient/{id}
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
+  SearchPatientByPhoneNummberFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: phone-number
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /patient/phone-number/{phone_prefix}
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
+  SearchPatientByNameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: name
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /patient/name/{name_prefix}/{paging}
             Method: get
       Policies:
         - Version: "2012-10-17"
