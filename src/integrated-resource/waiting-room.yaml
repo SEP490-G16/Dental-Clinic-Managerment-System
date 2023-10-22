@@ -34,40 +34,38 @@ Resources:
                 Action:
                   - "dynamodb:*"
                 Resource: "*"
+
   Api:
     Type: "AWS::ApiGateway::RestApi"
     Properties:
       Name: !Sub "${AppName}"
 
-  # AuthorizersCognitoUserPools:
-  #   Type: AWS::ApiGateway::Authorizer
-  #   Properties:
-  #     Name: MyCognitoAuthorizer
-  #     Type: COGNITO_USER_POOLS
-  #     RestApiId: !Ref Api
-  #     IdentitySource: method.request.header.Authorization
-  #     ProviderARNs:
-  #       - !Ref UserPoolArn
-
-  # WaitingRoomResource:
-  #   Type: "AWS::ApiGateway::Resource"
-  #   Properties:
-  #     RestApiId: !Ref Api
-  #     ParentId: !GetAtt Api.RootResourceId
-  #     PathPart: "waiting-room"
-
-  GetWaitingRoomResource:
+  WaitingRoomResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId: !Ref Api
       ParentId: !GetAtt Api.RootResourceId
-      PathPart: "waiting-room/{start-time}/{end-time}"
+      PathPart: "waiting-room"
+
+  StartTimeResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref WaitingRoomResource
+      PathPart: "{start-time}"
+
+  EndTimeResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref StartTimeResource
+      PathPart: "{end-time}"
 
   WaittingRoomMethodGet:
     Type: "AWS::ApiGateway::Method"
     Properties:
       RestApiId: !Ref Api
-      ResourceId: !Ref GetWaitingRoomResource
+      ResourceId: !Ref EndTimeResource
       HttpMethod: GET
       AuthorizationType: COGNITO_USER_POOLS
       AuthorizerId: MyCognitoAuthorizer
@@ -99,6 +97,68 @@ Resources:
     Properties:
       RestApiId: !Ref Api
       StageName: !Sub "${StageName}"
+
+  # AuthorizersCognitoUserPools:
+  #   Type: AWS::ApiGateway::Authorizer
+  #   Properties:
+  #     Name: MyCognitoAuthorizer
+  #     Type: COGNITO_USER_POOLS
+  #     RestApiId: !Ref Api
+  #     IdentitySource: method.request.header.Authorization
+  #     ProviderARNs:
+  #       - !Ref UserPoolArn
+
+  # WaitingRoomResource:
+  #   Type: "AWS::ApiGateway::Resource"
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     ParentId: !GetAtt Api.RootResourceId
+  #     PathPart: "waiting-room"
+
+  # GetWaitingRoomResource:
+  #   Type: "AWS::ApiGateway::Resource"
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     ParentId: !GetAtt Api.RootResourceId
+  #     PathPart: "waiting-room/{start-time}/{end-time}"
+
+  # WaittingRoomMethodGet:
+  #   Type: "AWS::ApiGateway::Method"
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     ResourceId: !Ref GetWaitingRoomResource
+  #     HttpMethod: GET
+  #     AuthorizationType: COGNITO_USER_POOLS
+  #     AuthorizerId: MyCognitoAuthorizer
+  #     RequestParameters:
+  #       method.request.path.start-time: true
+  #       method.request.path.end-time: true
+  #     Integration:
+  #       Type: AWS
+  #       Credentials: !GetAtt APIGatewayIntegreatedRole.Arn
+  #       IntegrationHttpMethod: POST
+  #       Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+  #       PassthroughBehavior: WHEN_NO_TEMPLATES
+  #       RequestParameters:
+  #         integration.request.path.start-time: method.request.path.start-time
+  #         integration.request.path.end-time: method.request.path.end-time
+  #       RequestTemplates:
+  #         application/json: '{"TableName":"${TableName}","KeyConditionExpression":"type=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))",":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}}}'
+  #       IntegrationResponses:
+  #         - StatusCode: "200"
+  #           ResponseTemplates:
+  #             application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"appointment\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"type\": \"$field.type.S\",\n\t\t\t\"epoch\": \"$field.epoch.N\",\n\t\t\t\"info\": \"$field.info.S\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
+  #     MethodResponses:
+  #       - StatusCode: "200"
+
+  # ApiDeployment:
+  #   Type: "AWS::ApiGateway::Deployment"
+  #   DependsOn:
+  #     - WaittingRoomMethodGet
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     StageName: !Sub "${StageName}"
+
   # Api:
   #   Type: "AWS::Serverless::Api"
   #   Properties:
