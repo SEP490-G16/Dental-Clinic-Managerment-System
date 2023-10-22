@@ -51,7 +51,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
-        MyApi: !Ref MyApi
+        MyApi: !GetAtt MyApi.RootResourceId
 
   # StaffFunctions:
   #   Type: AWS::CloudFormation::Stack
