@@ -27,17 +27,6 @@ Parameters:
     Type: String
 
 Resources:
-  MyApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: !Ref StageName
-      Name: !Sub "${StageName}-${AppName}-api"
-      Auth:
-        DefaultAuthorizer: MyCognitoAuthorizer
-        Authorizers:
-          MyCognitoAuthorizer:
-            UserPoolArn: !Ref UserPoolArn
-
   PatientFunctions:
     Type: AWS::CloudFormation::Stack
     DependsOn: MyApi
@@ -52,7 +41,6 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
-        MyApi: !Ref MyApi
 
   # StaffFunctions:
   #   Type: AWS::CloudFormation::Stack
