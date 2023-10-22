@@ -69,7 +69,7 @@ Resources:
       ResourceId: !Ref EndTimeResource
       HttpMethod: GET
       AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref ApiRootResourceId
+      AuthorizerId: !Ref InteCognitoAuthorizer
       RequestParameters:
         method.request.path.start-time: true
         method.request.path.end-time: true
