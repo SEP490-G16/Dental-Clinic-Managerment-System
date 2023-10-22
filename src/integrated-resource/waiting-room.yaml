@@ -84,7 +84,7 @@ Resources:
           integration.request.path.end-time: method.request.path.end-time
         RequestTemplates:
           application/json:
-            "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"type=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$number.toNumber($input.params(''start-time''))",":endTime":{"N":"$number.toNumber($input.params(''end-time''))"}}}'
+            "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":$util.urlDecode($input.params(''start-time''))},":endTime":{"N":$util.urlDecode($input.params(''end-time''))}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
         IntegrationResponses:
           - StatusCode: "200"
             ResponseTemplates:
