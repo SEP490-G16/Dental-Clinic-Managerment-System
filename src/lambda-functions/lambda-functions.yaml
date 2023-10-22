@@ -29,7 +29,6 @@ Parameters:
 Resources:
   PatientFunctions:
     Type: AWS::CloudFormation::Stack
-    DependsOn: MyApi
     Properties:
       TemplateURL: patient/patient.yaml
       Parameters:
