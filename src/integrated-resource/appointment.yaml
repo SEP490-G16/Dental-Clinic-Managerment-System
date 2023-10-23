@@ -133,14 +133,14 @@ Resources:
             SelectionPattern: '5\d{2}'
             ResponseTemplates:
               application/json: '{"error":"Internal server error"}'
-        MethodResponses:
-          - StatusCode: "200"
-          - StatusCode: "400"
-            ResponseModels:
-              application/json: "Error"
-          - StatusCode: "500"
-            ResponseModels:
-              application/json: "Error"
+      MethodResponses:
+        - StatusCode: "200"
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
 
   # WaittingRoomMethodGet:
   #   Type: "AWS::ApiGateway::Method"
