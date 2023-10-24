@@ -35,7 +35,7 @@ Resources:
       ParentId: !Ref WaitingRoomResource
       PathPart: "{epoch}"
 
-  WaittingRoomMethodGet:
+  WaitingRoomMethodGet:
     Type: "AWS::ApiGateway::Method"
     Properties:
       RestApiId: !Ref Api
@@ -111,66 +111,67 @@ Resources:
           ResponseModels:
             application/json: "Error"
 
-  WaitingRoomMethodPut:
-    Type: "AWS::ApiGateway::Method"
-    Properties:
-      RestApiId: !Ref Api
-      ResourceId: !Ref EpochResource
-      HttpMethod: PUT
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
-      RequestParameters:
-        method.request.path.epoch: true
-      Integration:
-        Type: AWS
-        Credentials: !Ref APIGatewayIntegreatedRoleArn
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestTemplates:
-          application/json:
-            "Fn::Sub":
-              - |
-                {
-                    "TableName": "${TableName}",
-                    "Key": {
-                        "type": {"S": "w"},
-                        "epoch": {"N": "$input.params('epoch')"}
-                    },
-                    "UpdateExpression": "SET #statusAlias = :statusValue",
-                    "ExpressionAttributeNames": {
-                        "#statusAlias": "status"
-                    },
-                    "ExpressionAttributeValues": {
-                        ":statusValue": {"N": "$input.json('$.status')"}
-                    }
-                }
-              - TableName: !Ref TableName
-        IntegrationResponses:
-          - StatusCode: "200"
-            ResponseTemplates:
-              application/json: '{"message": "Update successful"}'
-          - StatusCode: "400"
-            SelectionPattern: '4\d{2}'
-            ResponseTemplates:
-              application/json: '{"error":"Bad request"}'
-          - StatusCode: "500"
-            SelectionPattern: '5\d{2}'
-            ResponseTemplates:
-              application/json: '{"error":"Internal server error"}'
-      MethodResponses:
-        - StatusCode: "200"
-        - StatusCode: "400"
-          ResponseModels:
-            application/json: "Error"
-        - StatusCode: "500"
-          ResponseModels:
-            application/json: "Error"
+  # WaitingRoomMethodPut:
+  #   Type: "AWS::ApiGateway::Method"
+  #   Properties:
+  #     RestApiId: !Ref Api
+  #     ResourceId: !Ref EpochResource
+  #     HttpMethod: PUT
+  #     AuthorizationType: COGNITO_USER_POOLS
+  #     AuthorizerId: !Ref InteCognitoAuthorizer
+  #     RequestParameters:
+  #       method.request.path.epoch: true
+  #     Integration:
+  #       Type: AWS
+  #       Credentials: !Ref APIGatewayIntegreatedRoleArn
+  #       IntegrationHttpMethod: POST
+  #       Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
+  #       PassthroughBehavior: WHEN_NO_TEMPLATES
+  #       RequestTemplates:
+  #         application/json:
+  #           "Fn::Sub":
+  #             - |
+  #               {
+  #                   "TableName": "${TableName}",
+  #                   "Key": {
+  #                       "type": {"S": "w"},
+  #                       "epoch": {"N": "$input.params('epoch')"}
+  #                   },
+  #                   "UpdateExpression": "SET #statusAlias = :statusValue",
+  #                   "ExpressionAttributeNames": {
+  #                       "#statusAlias": "status"
+  #                   },
+  #                   "ExpressionAttributeValues": {
+  #                       ":statusValue": {"N": "$input.json('$.status')"}
+  #                   }
+  #               }
+  #             - TableName: !Ref TableName
+  #       IntegrationResponses:
+  #         - StatusCode: "200"
+  #           ResponseTemplates:
+  #             application/json: '{"message": "Update successful"}'
+  #         - StatusCode: "400"
+  #           SelectionPattern: '4\d{2}'
+  #           ResponseTemplates:
+  #             application/json: '{"error":"Bad request"}'
+  #         - StatusCode: "500"
+  #           SelectionPattern: '5\d{2}'
+  #           ResponseTemplates:
+  #             application/json: '{"error":"Internal server error"}'
+  #     MethodResponses:
+  #       - StatusCode: "200"
+  #       - StatusCode: "400"
+  #         ResponseModels:
+  #           application/json: "Error"
+  #       - StatusCode: "500"
+  #         ResponseModels:
+  #           application/json: "Error"
 
   ApiDeployment:
     Type: "AWS::ApiGateway::Deployment"
     DependsOn:
-      - WaittingRoomMethodGet
+      - WaitingRoomMethodGet
+      # - WaitingRoomMethodPut
     Properties:
       RestApiId: !Ref Api
       StageName: !Sub "${StageName}"

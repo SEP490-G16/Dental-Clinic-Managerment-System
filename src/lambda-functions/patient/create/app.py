@@ -27,11 +27,17 @@ def lambda_handler(event, context):
     try:
         data = json.loads(event['body'])
 
-        if not data.get('patient_name') or not data.get('phone_number'):
+        required_fields = ['patient_name', 'phone_number',
+                           'date_of_birth', 'gender', 'address']
+
+        missing_fields = [
+            field for field in required_fields if not data.get(field)]
+
+        if missing_fields:
             return {
                 'statusCode': 400,
                 'headers': {},
-                'body': json.dumps({'message': 'patient_name and phone_number are required fields'})
+                'body': json.dumps({'message': f"Fields {', '.join(missing_fields)} are required"})
             }
 
         query = """INSERT INTO `patient` (`patient_name`, `date_of_birth`, `gender`, `phone_number`, `full_medical_history`, 
