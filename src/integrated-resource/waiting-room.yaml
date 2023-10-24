@@ -64,19 +64,38 @@ Resources:
           integration.request.path.end-time: method.request.path.end-time
         RequestTemplates:
           application/json:
-            "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"w"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))"},":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
+            "Fn::Sub":
+              - |
+                #set($currentEpochTime = $context.requestTimeEpoch / 1000)
+                #set($secondsInADay = 86400)
+                #set($startOfDayEpoch = $currentEpochTime - ($currentEpochTime % $secondsInADay))
+                #set($endOfDayEpoch = $startOfDayEpoch + $secondsInADay - 1)
+                {
+                    "TableName": "${TableName}",
+                    "KeyConditionExpression": "#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime",
+                    "ExpressionAttributeValues": {
+                        ":v1": {"S": "w"},
+                        ":startTime": {"N": "$startOfDayEpoch.toString()"},
+                        ":endTime": {"N": "$endOfDayEpoch.toString()"}
+                    },
+                    "ExpressionAttributeNames": {"#type_alias": "type"}
+                }
+              - TableName: !Ref TableName
         IntegrationResponses:
           - StatusCode: "200"
             ResponseTemplates:
               application/json: |
                 #set($inputRoot = $input.path('$'))
                 {
-                  "appointment": [
+                  "waiting-room": [
                     #foreach($field in $inputRoot.Items)
                       {
                         "type": "$field.type.S",
                         "epoch": "$field.epoch.N",
-                        "info": "$field.info.S"
+                        "produce": "$field.produce.N",
+                        "patient_id": "$field.patient_id.N",
+                        "reason": "$field.reason.S",
+                        "status": "$field.status.N"
                       }
                       #if($foreach.hasNext),#end
                     #end
