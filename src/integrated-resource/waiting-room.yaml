@@ -46,7 +46,7 @@ Resources:
     Type: "AWS::ApiGateway::Method"
     Properties:
       RestApiId: !Ref Api
-      ResourceId: !Ref EndTimeResource
+      ResourceId: !Ref WaitingRoomResource
       HttpMethod: GET
       AuthorizationType: COGNITO_USER_POOLS
       AuthorizerId: !Ref InteCognitoAuthorizer
