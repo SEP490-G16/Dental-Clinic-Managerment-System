@@ -54,13 +54,38 @@ Resources:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestTemplates:
           application/json:
-            {
-              "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"a"},"epoch":{"N":"$input.path(''$.epoch'')"},"name":{"S":"$input.path(''$.name'')"},"procedure":{"S":"$input.path(''$.procedure'')"},"doctor":{"S":"$input.path(''$.doctor'')"}}}',
-            }
+            "Fn::Sub":
+              - |
+                #set($requestId = $context.requestId)
+
+                {
+                  "TableName":"dev-dcms-db",
+                  "Key": {
+                    "type": {"S":"a"},
+                    "epoch": {"N":"$input.path('$.epoch')"}
+                  },
+                  "UpdateExpression": "SET #requestIdField = :newValues",
+                  "ExpressionAttributeNames": {
+                    "#requestIdField": "$requestId"
+                  },
+                  "ExpressionAttributeValues": {
+                    ":newValues": {
+                      "M": {
+                        "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
+                        "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
+                        "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
+                        "procedure": {"N": "$input.path('$.appointment.procedure')"},
+                        "doctor": {"S": "$input.path('$.appointment.doctor')"},
+                        "time": {"N": "$input.path('$.appointment.time')"}
+                      }
+                    }
+                  }
+                }
+              - TableName: !Ref TableName
         IntegrationResponses:
           - StatusCode: "200"
             ResponseTemplates:
@@ -110,21 +135,45 @@ Resources:
             ResponseTemplates:
               application/json: |
                 #set($inputRoot = $input.path('$'))
-                {
-                  "appointment": [
-                    #foreach($field in $inputRoot.Items)
-                      {
-                        "type": "$field.type.S",
-                        "epoch": "$field.epoch.N",
-                        "info": "$field.info.S",
-                        "procedure": "$field.procedure.N",
-                        "name": "$field.name.S",
-                        "doctor": "$field.doctor.S"
-                      }
-                      #if($foreach.hasNext),#end
+                [
+                #foreach($item in $inputRoot.Items)
+                    #set($grouped = {})
+                    #set($counts = {})
+                    
+                    #foreach($key in $item.keySet())
+                        #if($key != "type" && $key != "epoch")
+                            #if(!$grouped.containsKey($item[$key].M.procedure.N))
+                                #set($grouped[$item[$key].M.procedure.N] = [])
+                                #set($counts[$item[$key].M.procedure.N] = 0)
+                            #end
+                            #set($appointment = {
+                                "appointment_id": "$key",
+                                "patient_id": "$util.escapeJavaScript($item[$key].M.patient_id.S)",
+                                "patient_name": "$util.escapeJavaScript($item[$key].M.patient_name.S)",
+                                "phone_number": "$util.escapeJavaScript($item[$key].M.phone_number.S)",
+                                "procedure": $item[$key].M.procedure.N,
+                                "doctor": "$util.escapeJavaScript($item[$key].M.doctor.S)",
+                                "time": $item[$key].M.time.N
+                            })
+                            #set($discard = $grouped[$item[$key].M.procedure.N].add($appointment))
+                            #set($counts[$item[$key].M.procedure.N] = $counts[$item[$key].M.procedure.N] + 1)
+                        #end
                     #end
-                  ]
-                }
+                    
+                    {
+                        "date": $item.epoch.N,
+                        "appointments": [
+                            #foreach($procKey in $grouped.keySet())
+                                {
+                                    "procedure": $procKey,
+                                    "count": $counts[$procKey],
+                                    "details": $grouped[$procKey]
+                                }#if($foreach.hasNext),#end
+                            #end
+                        ]
+                    }#if($foreach.hasNext),#end
+                #end
+                ]
           - StatusCode: "400"
             SelectionPattern: '4\d{2}'
             ResponseTemplates:
