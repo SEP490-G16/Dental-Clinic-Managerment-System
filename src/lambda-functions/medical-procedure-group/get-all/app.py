@@ -22,7 +22,8 @@ def lambda_handler(event, context):
     global conn, cursor
 
     query = "SELECT * FROM `medical_procedure_group` WHERE `active` != 0;"
-    rows = cursor.execute(query)
+    cursor.execute(query)
+    rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
     transformed_rows = [
         dict(zip(column_names, transform_row(row))) for row in rows]
