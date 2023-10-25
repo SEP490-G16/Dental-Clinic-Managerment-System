@@ -201,6 +201,8 @@ Resources:
       HttpMethod: PUT
       AuthorizationType: COGNITO_USER_POOLS
       AuthorizerId: !Ref InteCognitoAuthorizer
+      RequestParameters:
+        method.request.path.start-time: true
       Integration:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
@@ -422,6 +424,8 @@ Resources:
     Type: "AWS::ApiGateway::Deployment"
     DependsOn:
       - AppointmentMethodPost
+      - AppointmentMethodPut
+      - AppointmentMethodGet
     Properties:
       RestApiId: !Ref Api
       StageName: !Sub "${StageName}"
