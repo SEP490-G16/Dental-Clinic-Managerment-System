@@ -63,7 +63,7 @@ Resources:
                 #set($requestId = $context.requestId)
 
                 {
-                  "TableName":"dev-dcms-db",
+                  "TableName":"${TableName}",
                   "Key": {
                     "type": {"S":"a"},
                     "epoch": {"N":"$input.path('$.epoch')"}
@@ -80,7 +80,8 @@ Resources:
                         "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
                         "procedure": {"N": "$input.path('$.appointment.procedure')"},
                         "doctor": {"S": "$input.path('$.appointment.doctor')"},
-                        "time": {"N": "$input.path('$.appointment.time')"}
+                        "time": {"N": "$input.path('$.appointment.time')"},
+                        "migrated": {"BOOL": false}
                       }
                     }
                   }
@@ -153,7 +154,8 @@ Resources:
                                 "phone_number": "$util.escapeJavaScript($item[$key].M.phone_number.S)",
                                 "procedure": $item[$key].M.procedure.N,
                                 "doctor": "$util.escapeJavaScript($item[$key].M.doctor.S)",
-                                "time": $item[$key].M.time.N
+                                "time": $item[$key].M.time.N,
+                                "migrated": $item[$key].M.edited.BOOL
                             })
                             #set($discard = $grouped[$item[$key].M.procedure.N].add($appointment))
                             #set($counts[$item[$key].M.procedure.N] = $counts[$item[$key].M.procedure.N] + 1)
@@ -174,6 +176,136 @@ Resources:
                     }#if($foreach.hasNext),#end
                 #end
                 ]
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "200"
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
+
+  AppointmentMethodPut:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref StartTimeResource
+      HttpMethod: PUT
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref InteCognitoAuthorizer
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/TransactWriteItems"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.start-time: method.request.path.start-time
+        RequestTemplates:
+          application/json:
+            "Fn::Sub":
+              - |
+                #set($requestId = $context.requestId)
+                #set($epoch = $input.path('$.epoch'))
+                #set($newEpoch = $input.path('$.new_epoch'))
+                #set($attributeName = $input.params('start-time'))
+
+                #if($epoch == $newEpoch)
+                {
+                  "TableName":"${TableName}",
+                  "Key": {
+                    "type": {"S":"a"},
+                    "epoch": {"N":"$input.path('$.epoch')"}
+                  },
+                  "UpdateExpression": "SET #requestIdField = :newValues",
+                  "ExpressionAttributeNames": {
+                    "#requestIdField": "$attributeName"
+                  },
+                  "ExpressionAttributeValues": {
+                    ":newValues": {
+                      "M": {
+                        "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
+                        "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
+                        "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
+                        "procedure": {"N": "$input.path('$.appointment.procedure')"},
+                        "doctor": {"S": "$input.path('$.appointment.doctor')"},
+                        "time": {"N": "$input.path('$.appointment.time')"},
+                        "migrated": {"BOOL": false}
+                      }
+                    }
+                  }
+                }
+                #else
+                {
+                  #set($transactItems = [])
+                  $util.qr($transactItems.add({
+                    "Update": 
+                    {
+                      "TableName":"${TableName}",
+                      "Key": {
+                        "type": {"S":"a"},
+                        "epoch": {"N":"$input.path('$.epoch')"}
+                      },
+                      "UpdateExpression": "SET #requestIdField = :newValues",
+                      "ExpressionAttributeNames": {
+                        "#requestIdField": "$requestId"
+                      },
+                      "ExpressionAttributeValues": {
+                        ":newValues": {
+                          "M": {
+                            "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
+                            "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
+                            "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
+                            "procedure": {"N": "$input.path('$.appointment.procedure')"},
+                            "doctor": {"S": "$input.path('$.appointment.doctor')"},
+                            "time": {"N": "$input.path('$.appointment.time')"},
+                            "migrated": {"BOOL": false}
+                          }
+                        }
+                      }
+                    }
+                  }))
+
+                  # Update old item
+                  $util.qr($transactItems.add({
+                    "Update": {
+                      "TableName": "${TableName}",
+                      "Key": {
+                        "type": {"S": "a"},
+                        "epoch": {"N": "$epoch"}
+                      },
+                      "UpdateExpression": "SET #requestIdField = :newValues",
+                      "ExpressionAttributeNames": {
+                        "#requestIdField": "$attributeName"
+                      },
+                      "ExpressionAttributeValues": {
+                        ":editedTrue": {"BOOL": true},
+                        ":newEpoch": {"N": "$newEpoch"},
+                        ":attributeName": {"S": "$requestId"}
+                      }
+                    }
+                  }))
+
+                  {
+                    "version" : "2018-05-29",
+                    "operation" : "TransactWriteItems",
+                    "transactItems": $util.toJson($transactItems)
+                  }
+                }
+                #end
+              - TableName: !Ref TableName
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: "{}"
           - StatusCode: "400"
             SelectionPattern: '4\d{2}'
             ResponseTemplates:
