@@ -26,7 +26,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref StageName
-      Name: !Sub "${StageName}-${AppName}-api"
+      Name: !Sub "${StageName}-${AppName}-patient-api"
       Auth:
         DefaultAuthorizer: MyCognitoAuthorizer
         Authorizers:

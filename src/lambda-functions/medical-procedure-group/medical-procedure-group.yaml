@@ -24,16 +24,16 @@ Parameters:
     Type: String
 
 Resources:
-  # MyApi:
-  #   Type: AWS::Serverless::Api
-  #   Properties:
-  #     StageName: !Ref StageName
-  #     Name: !Sub "${StageName}-${AppName}-api"
-  #     Auth:
-  #       DefaultAuthorizer: MyCognitoAuthorizer
-  #       Authorizers:
-  #         MyCognitoAuthorizer:
-  #           UserPoolArn: !Ref UserPoolArn
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Name: !Sub "${StageName}-${AppName}-medical-procedure-group-api"
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !Ref UserPoolArn
 
   GetOneResource:
     Type: AWS::Serverless::Function
