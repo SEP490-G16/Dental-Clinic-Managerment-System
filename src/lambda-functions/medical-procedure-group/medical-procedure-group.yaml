@@ -20,8 +20,6 @@ Parameters:
   PyMySQLLayerArn:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
-  MyApi:
-    Type: String
 
 Resources:
   MyApi:
