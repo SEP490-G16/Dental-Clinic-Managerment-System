@@ -27,20 +27,8 @@ Parameters:
     Type: String
 
 Resources:
-  MyApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: !Ref StageName
-      Name: !Sub "${StageName}-${AppName}-api"
-      Auth:
-        DefaultAuthorizer: MyCognitoAuthorizer
-        Authorizers:
-          MyCognitoAuthorizer:
-            UserPoolArn: !Ref UserPoolArn
-
   PatientFunctionsStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: MyApi
     Properties:
       TemplateURL: patient/patient.yaml
       Parameters:
@@ -52,11 +40,9 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
-        MyApi: !Ref MyApi
 
   MedicalProcedureGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: MyApi
     Properties:
       TemplateURL: medical-procedure-group/medical-procedure-group.yaml
       Parameters:
@@ -68,4 +54,3 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
-        MyApi: !Ref MyApi
