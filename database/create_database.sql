@@ -39,3 +39,20 @@ BEGIN
 END;
 //
 DELIMITER ;
+
+CREATE TABLE `medical_procedure_group` (
+    `medical_procedure_group_id` VARCHAR(4) NOT NULL PRIMARY KEY,
+    `name` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    `description` TEXT,
+    `active` TINYINT(1) NOT NULL DEFAULT 1
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE `medical_procedure` (
+    medical_procedure_id VARCHAR(4) NOT NULL PRIMARY KEY,
+    medical_procedure_group_id VARCHAR(4) NOT NULL,
+    name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    price INT(10) NOT NULL,
+    description TEXT,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    FOREIGN KEY (medical_procedure_group_id) REFERENCES medical_procedure_group(medical_procedure_group_id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

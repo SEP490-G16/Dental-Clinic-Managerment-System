@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_HOST=nguyen-tran-clinic-db.c4a0pr3rutpd.ap-southeast-1.rds.amazonaws.com
+      - PMA_PORT=3306
+      - PMA_USER=admin
+      - PMA_PASSWORD=COMK9szvsdq8EyJEC0Hq
+      - PMA_ARBITRARY=1
+    restart: always
+    ports:
+      - 8081:80
