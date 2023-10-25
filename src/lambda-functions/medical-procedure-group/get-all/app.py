@@ -38,5 +38,5 @@ def lambda_handler(event, context):
     return {
         'statusCode': 200,
         'headers': {},
-        'body': json.dumps(transformed_rows[0], ensure_ascii=False)
+        'body': json.dumps(transformed_rows, ensure_ascii=False)
     }
