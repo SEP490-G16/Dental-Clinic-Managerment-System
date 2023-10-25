@@ -52,7 +52,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
-        MyApi: !GetAtt MyApi.Arn
+        MyApi: !Ref MyApi
 
   MedicalProcedureGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -68,4 +68,4 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
-        MyApi: !GetAtt MyApi.Arn
+        MyApi: !Ref MyApi
