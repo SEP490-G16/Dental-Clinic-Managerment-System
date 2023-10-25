@@ -39,10 +39,6 @@ Parameters:
   AppName:
     Type: String
     Default: "dcms"
-  # cho phan test intergrate
-  # TableName:
-  #   Type: String
-  #   Default: Music
 
 Resources:
   InfrastructureStack:

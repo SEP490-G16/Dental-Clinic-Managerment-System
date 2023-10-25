@@ -54,6 +54,8 @@ Resources:
 
   MedicalProcedureGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - MyApi
     Properties:
       TemplateURL: medical-procedure-group/medical-procedure-group.yaml
       Parameters:

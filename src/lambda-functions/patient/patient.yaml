@@ -206,7 +206,3 @@ Resources:
               Action:
                 - "rds:*"
               Resource: "*"
-# Outputs:
-#   GetAPatientFunctionArn:
-#     Description: "ARN of the GetAPatient function"
-#     Value: !GetAtt GetAPatientFunction.Arn
