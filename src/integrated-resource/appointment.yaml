@@ -219,88 +219,89 @@ Resources:
                 #set($epoch = $input.path('$.epoch'))
                 #set($newEpoch = $input.path('$.new_epoch'))
                 #set($attributeName = $input.params('start-time'))
-
                 #if($epoch == $newEpoch)
                 {
-                  "TableName":"${TableName}",
-                  "Key": {
-                    "type": {"S":"a"},
-                    "epoch": {"N":"$input.path('$.epoch')"}
-                  },
-                  "UpdateExpression": "SET #requestIdField = :newValues",
-                  "ExpressionAttributeNames": {
-                    "#requestIdField": "$attributeName"
-                  },
-                  "ExpressionAttributeValues": {
-                    ":newValues": {
-                      "M": {
-                        "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
-                        "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
-                        "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
-                        "procedure": {"N": "$input.path('$.appointment.procedure')"},
-                        "doctor": {"S": "$input.path('$.appointment.doctor')"},
-                        "time": {"N": "$input.path('$.appointment.time')"},
-                        "migrated": {"BOOL": false}
-                      }
-                    }
-                  }
-                }
-                #else
-                {
-                  #set($transactItems = [])
-                  $util.qr($transactItems.add({
-                    "Update": 
+                  "TransactItems": [
                     {
-                      "TableName":"${TableName}",
-                      "Key": {
-                        "type": {"S":"a"},
-                        "epoch": {"N":"$input.path('$.epoch')"}
-                      },
-                      "UpdateExpression": "SET #requestIdField = :newValues",
-                      "ExpressionAttributeNames": {
-                        "#requestIdField": "$requestId"
-                      },
-                      "ExpressionAttributeValues": {
-                        ":newValues": {
-                          "M": {
-                            "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
-                            "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
-                            "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
-                            "procedure": {"N": "$input.path('$.appointment.procedure')"},
-                            "doctor": {"S": "$input.path('$.appointment.doctor')"},
-                            "time": {"N": "$input.path('$.appointment.time')"},
-                            "migrated": {"BOOL": false}
+                      "Update": {
+                        "TableName": "${TableName}",
+                        "Key": {
+                          "type": {"S":"a"},
+                          "epoch": {"N":"$epoch"}
+                        },
+                        "UpdateExpression": "SET #requestIdField = :newValues",
+                        "ExpressionAttributeNames": {
+                          "#requestIdField": "$attributeName"
+                        },
+                        "ExpressionAttributeValues": {
+                          ":newValues": {
+                            "M": {
+                              "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
+                              "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
+                              "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
+                              "procedure": {"N": "$input.path('$.appointment.procedure')"},
+                              "doctor": {"S": "$input.path('$.appointment.doctor')"},
+                              "time": {"N": "$input.path('$.appointment.time')"},
+                              "migrated": {"BOOL": false}
+                            }
                           }
                         }
                       }
                     }
-                  }))
-
-                  # Update old item
-                  $util.qr($transactItems.add({
-                    "Update": {
-                      "TableName": "${TableName}",
-                      "Key": {
-                        "type": {"S": "a"},
-                        "epoch": {"N": "$epoch"}
-                      },
-                      "UpdateExpression": "SET #requestIdField = :newValues",
-                      "ExpressionAttributeNames": {
-                        "#requestIdField": "$attributeName"
-                      },
-                      "ExpressionAttributeValues": {
-                        ":editedTrue": {"BOOL": true},
-                        ":newEpoch": {"N": "$newEpoch"},
-                        ":attributeName": {"S": "$requestId"}
+                  ]
+                }
+                #else
+                {
+                  "TransactItems": [
+                    {
+                      "Update": {
+                        "TableName": "${TableName}",
+                        "Key": {
+                          "type": {"S":"a"},
+                          "epoch": {"N":"$newEpoch"}
+                        },
+                        "UpdateExpression": "SET #requestIdField = :newValues",
+                        "ExpressionAttributeNames": {
+                          "#requestIdField": "$requestId"
+                        },
+                        "ExpressionAttributeValues": {
+                          ":newValues": {
+                            "M": {
+                              "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
+                              "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
+                              "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
+                              "procedure": {"N": "$input.path('$.appointment.procedure')"},
+                              "doctor": {"S": "$input.path('$.appointment.doctor')"},
+                              "time": {"N": "$input.path('$.appointment.time')"},
+                              "migrated": {"BOOL": false}
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Update": {
+                        "TableName": "${TableName}",
+                        "Key": {
+                          "type": {"S":"a"},
+                          "epoch": {"N":"$epoch"}
+                        },
+                        "UpdateExpression": "SET #requestIdField = :newValues",
+                        "ExpressionAttributeNames": {
+                          "#requestIdField": "$attributeName"
+                        },
+                        "ExpressionAttributeValues": {
+                          ":newValues": {
+                            "M": {
+                              "attribute_name": {"S": "$requestId"},
+                              "epoch": {"N": "$newEpoch"},
+                              "migrated": {"BOOL": true}
+                            }
+                          }
+                        }
                       }
                     }
-                  }))
-
-                  {
-                    "version" : "2018-05-29",
-                    "operation" : "TransactWriteItems",
-                    "transactItems": $util.toJson($transactItems)
-                  }
+                  ]
                 }
                 #end
               - TableName: !Ref TableName
