@@ -67,4 +67,4 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
-        MyApi: !Ref MyApi
+        MyApi: !GetAtt MyApi.RestApiId
