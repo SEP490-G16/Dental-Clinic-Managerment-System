@@ -155,7 +155,7 @@ Resources:
                                 "procedure": $item[$key].M.procedure.N,
                                 "doctor": "$util.escapeJavaScript($item[$key].M.doctor.S)",
                                 "time": $item[$key].M.time.N,
-                                "migrated": $item[$key].M.edited.BOOL
+                                "migrated": $item[$key].M.migrated.BOOL
                             })
                             #set($discard = $grouped[$item[$key].M.procedure.N].add($appointment))
                             #set($counts[$item[$key].M.procedure.N] = $counts[$item[$key].M.procedure.N] + 1)
