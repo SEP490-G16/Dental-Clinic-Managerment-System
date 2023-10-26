@@ -199,15 +199,13 @@ DELIMITER ;
 CREATE TABLE `invoice_item` (
 	`invoice_item_id` VARCHAR(12) NOT NULL PRIMARY KEY,
     `price` INT,
+    `invoice_id` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
     `medical_procedure_id` VARCHAR(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     `medical_supply_id` VARCHAR(11),
-    `treatment_course_id` VARCHAR(10),
-    `facility_id` VARCHAR(4),
     `description` TEXT,
+    FOREIGN KEY (invoice_id) REFERENCES invoice(invoice_id),
     FOREIGN KEY (medical_procedure_id) REFERENCES medical_procedure(medical_procedure_id),
-    FOREIGN KEY (medical_supply_id) REFERENCES medical_supply(medical_supply_id),
-    FOREIGN KEY (treatment_course_id) REFERENCES treatment_course(treatment_course_id),
-    FOREIGN KEY (facility_id) REFERENCES facility(facility_id)
+    FOREIGN KEY (medical_supply_id) REFERENCES medical_supply(medical_supply_id)
 )
 
 DELIMITER //
@@ -226,7 +224,7 @@ BEGIN
         SET int_id = 1;
     END IF;
     
-    SET NEW.invoice_item_id = CONCAT('S-', LPAD(int_id, 10, '0'));
+    SET NEW.invoice_item_id = CONCAT('I-', LPAD(int_id, 10, '0'));
 END;
 //
 DELIMITER ;
@@ -264,3 +262,43 @@ BEGIN
 END;
 //
 DELIMITER ;
+
+CREATE TABLE `invoice` (
+	`invoice_id` VARCHAR(10) NOT NULL PRIMARY KEY,
+    `treatment_course_id` VARCHAR(10),
+    `facility_id` VARCHAR(4),
+    `created_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (treatment_course_id) REFERENCES treatment_course(treatment_course_id),
+    FOREIGN KEY (facility_id) REFERENCES facility(facility_id)
+)
+
+DELIMITER //
+CREATE TRIGGER invoice_before_insert 
+BEFORE INSERT ON invoice 
+FOR EACH ROW 
+BEGIN
+    DECLARE last_id VARCHAR(10);
+    DECLARE int_id INT;
+    
+    SELECT invoice_id INTO last_id FROM invoice ORDER BY invoice_id DESC LIMIT 1;
+    
+    IF last_id IS NOT NULL THEN
+        SET int_id = CAST(SUBSTRING(last_id, 3) AS UNSIGNED) + 1;
+    ELSE
+        SET int_id = 1;
+    END IF;
+    
+    SET NEW.invoice_id = CONCAT('I-', LPAD(int_id, 8, '0'));
+END;
+//
+DELIMITER ;
+
+CREATE TABLE `receipt` (
+	`receipt_id` VARCHAR(12) NOT NULL PRIMARY KEY,
+	`created_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `status` TINYINT(1) DEFAULT 1,
+    `examination_id` VARCHAR(12),
+    `invoice_id` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    FOREIGN KEY (invoice_id) REFERENCES invoice(invoice_id),
+    FOREIGN KEY (examination_id) REFERENCES examination(examination_id)
+)
