@@ -110,8 +110,8 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /treatment-course
-            Method: post
+            Path: /treatment-course/{treatment_course_id}
+            Method: put
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -139,7 +139,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /treatment-course/{id}
+            Path: /treatment-course/{treatment_course_id}
             Method: delete
       Policies:
         - Version: "2012-10-17"
