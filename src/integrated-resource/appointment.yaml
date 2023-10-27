@@ -155,6 +155,8 @@ Resources:
                                 "procedure": $item[$key].M.procedure.N,
                                 "doctor": "$util.escapeJavaScript($item[$key].M.doctor.S)",
                                 "time": $item[$key].M.time.N,
+                                "attribute_name": "$util.escapeJavaScript($item[$key].M.attribute_name.S)",
+                                "epoch": $item[$key].M.epoch.N,
                                 "migrated": $item[$key].M.migrated.BOOL
                             })
                             #set($discard = $grouped[$item[$key].M.procedure.N].add($appointment))
