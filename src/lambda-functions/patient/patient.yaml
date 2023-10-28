@@ -29,8 +29,8 @@ Resources:
       Name: !Sub "${StageName}-${AppName}-patient-api"
       Cors:
         AllowOrigin: "'*'"
-        AllowMethods: "'GET,POST,PUT,DELETE'"
-        AllowHeaders: "'Authorization,Content-Type'"
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
       Auth:
         DefaultAuthorizer: MyCognitoAuthorizer
         Authorizers:
