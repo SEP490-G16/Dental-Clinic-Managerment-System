@@ -79,21 +79,17 @@ Resources:
             ResponseTemplates:
               application/json: |
                 #set($inputRoot = $input.path('$'))
-                {
-                  "waiting-room": [
-                    #foreach($field in $inputRoot.Items)
-                      {
-                        "type": "$field.type.S",
-                        "epoch": "$field.epoch.N",
-                        "produce": "$field.produce.N",
-                        "patient_id": "$field.patient_id.N",
-                        "reason": "$field.reason.S",
-                        "status": "$field.status.N"
-                      }
-                      #if($foreach.hasNext),#end
-                    #end
-                  ]
-                }
+                [#foreach($field in $inputRoot.Items)
+                  {
+                    "type": "$field.type.S",
+                    "epoch": "$field.epoch.N",
+                    "produce": "$field.produce.N",
+                    "patient_id": "$field.patient_id.N",
+                    "reason": "$field.reason.S",
+                    "status": "$field.status.N"
+                  }
+                  #if($foreach.hasNext),#end
+                #end]
           - StatusCode: "400"
             SelectionPattern: '4\d{2}'
             ResponseTemplates:

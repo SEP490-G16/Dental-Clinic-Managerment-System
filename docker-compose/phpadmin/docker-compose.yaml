@@ -3,6 +3,8 @@ version: '3'
 services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
+    # # for mac
+    # image: phpmyadmin:latest
     environment:
       - PMA_HOST=nguyen-tran-clinic-db.c4a0pr3rutpd.ap-southeast-1.rds.amazonaws.com
       - PMA_PORT=3306

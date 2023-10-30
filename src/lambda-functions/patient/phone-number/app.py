@@ -27,9 +27,10 @@ def lambda_handler(event, context):
         return {
             'statusCode': 400,
             'headers': {
-                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
                 "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "*"
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
             },
             'body': json.dumps({'message': 'Bad Request'})
         }
@@ -50,9 +51,10 @@ def lambda_handler(event, context):
         return {
             'statusCode': 404,
             'headers': {
-                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
                 "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "*"
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
             },
             'body': json.dumps({'message': 'Patient not found'}, ensure_ascii=False)
         }
@@ -60,9 +62,10 @@ def lambda_handler(event, context):
     return {
         'statusCode': 200,
         'headers': {
-            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*"
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
         },
         'body': json.dumps(transformed_rows, ensure_ascii=False)
     }
