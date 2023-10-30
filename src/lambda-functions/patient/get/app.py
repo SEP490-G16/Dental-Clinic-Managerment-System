@@ -26,7 +26,12 @@ def lambda_handler(event, context):
             event['httpMethod'] != 'GET'):
         return {
             'statusCode': 400,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Bad Request'})
         }
 
@@ -50,12 +55,22 @@ def lambda_handler(event, context):
     if len(transformed_rows) == 0:
         return {
             'statusCode': 404,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Patient not found'}, ensure_ascii=False)
         }
 
     return {
         'statusCode': 200,
-        'headers': {},
+        'headers': {
+            "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+        },
         'body': json.dumps(transformed_rows[0], ensure_ascii=False)
     }
