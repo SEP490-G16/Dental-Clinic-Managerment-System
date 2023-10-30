@@ -143,7 +143,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /patient/name/{paging}
+            Path: /patient/name/{name_prefix}
             Method: get
       Policies:
         - Version: "2012-10-17"

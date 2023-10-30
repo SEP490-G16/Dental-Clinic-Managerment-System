@@ -55,12 +55,12 @@ def create_response(status_code, message, data=None, exception_type=None):
 def lambda_handler(event, context):
     global conn, cursor
     if ('pathParameters' not in event or
-            'paging' not in event['pathParameters'] or
-            not event['pathParameters']['paging'] or
+            'name_prefix' not in event['pathParameters'] or
+            not event['pathParameters']['name_prefix'] or
             event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
     try:
-        page_number = int(event['pathParameters']['paging'])
+        page_number = int(event['pathParameters']['name_prefix'])
         offset = (page_number - 1) * 10
     except ValueError:
         return create_response(400, 'Invalid paging value')
