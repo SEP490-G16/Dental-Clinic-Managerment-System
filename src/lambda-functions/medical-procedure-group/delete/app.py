@@ -26,7 +26,7 @@ def lambda_handler(event, context):
         # Cập nhật trường `active` của bản ghi patient thành 0
         query = "UPDATE `medical_procedure_group` SET `active`=0 WHERE patient_id=%s;"
 
-        cursor.execute(query, (id))
+        cursor.execute(query, (id,))
 
         conn.commit()
 
