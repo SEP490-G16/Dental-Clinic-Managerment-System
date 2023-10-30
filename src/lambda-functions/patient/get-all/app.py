@@ -3,10 +3,6 @@ import pymysql
 import os
 import datetime
 
-conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
-                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
-cursor = conn.cursor()
-
 
 def transform_row(row):
     transformed_row = []
@@ -53,7 +49,10 @@ def create_response(status_code, message, data=None, exception_type=None):
 
 
 def lambda_handler(event, context):
-    global conn, cursor
+    # global conn, cursor
+    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
+                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+    cursor = conn.cursor()
     if ('pathParameters' not in event or
             'name_prefix' not in event['pathParameters'] or
             not event['pathParameters']['name_prefix'] or
@@ -68,7 +67,7 @@ def lambda_handler(event, context):
     try:
         query = """
             SELECT * FROM `patient`
-            WHERE active = 1
+            WHERE active != 0
             ORDER BY created_date DESC
             LIMIT 11 OFFSET %s;
         """
