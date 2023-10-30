@@ -3,10 +3,6 @@ import pymysql
 import os
 import datetime
 
-conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
-    'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
-cursor = conn.cursor()
-
 
 def transform_row(row):
     transformed_row = []
@@ -19,7 +15,10 @@ def transform_row(row):
 
 
 def lambda_handler(event, context):
-    global conn, cursor
+    # global conn, cursor
+    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
+        'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+    cursor = conn.cursor()
     if ('pathParameters' not in event or
             'id' not in event['pathParameters'] or
             not event['pathParameters']['id'] or
@@ -36,7 +35,7 @@ def lambda_handler(event, context):
         }
 
     patient_id = event['pathParameters']['id']
-    query = "SELECT * FROM `patient` WHERE patient_id = %s;"
+    query = "SELECT * FROM `patient` WHERE patient_id = %s AND `active` != 0;"
     cursor.execute(query, (patient_id))
     # try:
     #     cursor.execute(query, (patient_id))
