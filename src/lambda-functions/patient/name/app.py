@@ -17,6 +17,16 @@ def transform_row(row):
             transformed_row.append(value)
     return tuple(transformed_row)
 
+def get_mysql_error_message(error_code):
+    error_messages = {
+        1045: "Access denied for user",
+        1049: "Unknown database",
+        1146: "Table doesn't exist",
+        1452: "Foreign key constraint fails",  # Lỗi khóa ngoại
+        1062: "Duplicate entry",  # Lỗi trùng lắp dữ liệu
+        1054: "Unknown column in field list"  # Lỗi cột không tồn tại
+    }
+    return error_messages.get(error_code, "Unknown MySQL error")
 
 def lambda_handler(event, context):
     global conn, cursor
@@ -27,7 +37,12 @@ def lambda_handler(event, context):
             event['httpMethod'] != 'GET'):
         return {
             'statusCode': 400,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Bad Request'})
         }
 
@@ -38,31 +53,71 @@ def lambda_handler(event, context):
     except ValueError:
         return {
             'statusCode': 400,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Invalid paging value'})
         }
+    try: 
+        query = """
+            SELECT * FROM `patient`
+            WHERE patient_name LIKE %s AND active = 1
+            ORDER BY created_date DESC
+            LIMIT 11 OFFSET %s;
+        """
+        cursor.execute(query, ("%" + name_prefix + "%", offset))
+        rows = cursor.fetchall()
+        column_names = [column[0] for column in cursor.description]
+        transformed_rows = [
+            dict(zip(column_names, transform_row(row))) for row in rows]
 
-    query = """
-        SELECT * FROM `patient`
-        WHERE patient_name LIKE %s AND active = 1
-        ORDER BY created_date DESC
-        LIMIT 11 OFFSET %s;
-    """
-    cursor.execute(query, ("%" + name_prefix + "%", offset))
-    rows = cursor.fetchall()
-    column_names = [column[0] for column in cursor.description]
-    transformed_rows = [
-        dict(zip(column_names, transform_row(row))) for row in rows]
+        if len(transformed_rows) == 0:
+            return {
+                'statusCode': 404,
+                'headers': {
+                    "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+                },
+                'body': json.dumps({'message': 'Patient not found'}, ensure_ascii=False)
+            }
 
-    if len(transformed_rows) == 0:
         return {
-            'statusCode': 404,
-            'headers': {},
-            'body': json.dumps({'message': 'Patient not found'}, ensure_ascii=False)
+            'statusCode': 200,
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
+            'body': json.dumps(transformed_rows, ensure_ascii=False)
         }
-
-    return {
-        'statusCode': 200,
-        'headers': {},
-        'body': json.dumps(transformed_rows, ensure_ascii=False)
-    }
+    except pymysql.MySQLError as e:
+        print("MySQL error:", e)
+        error_message = get_mysql_error_message(e.args[0])
+        return {
+            'statusCode': 400 if e.args[0] in [1452, 1062, 1054] else 500,
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
+            'body': json.dumps({'message': error_message, 'type': str(e.__class__.__name__)})
+        }
+    except Exception as e:
+        print("Error:", e)
+        return {
+            'statusCode': 500,
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
+            'body': json.dumps({'message': 'Internal error', 'type': str(e.__class__.__name__)})
+        }
