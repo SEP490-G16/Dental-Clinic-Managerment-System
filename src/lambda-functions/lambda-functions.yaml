@@ -55,6 +55,20 @@ Resources:
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
 
+  MedicalProcedureFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: medical-procedure/medical-procedure.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
+
   TreatmentCourseGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
     Properties:
