@@ -83,16 +83,17 @@ def lambda_handler(event, context):
         patient_id = row[0]
         conn.commit()
 
-        return {
-            'statusCode': 201,
-            'headers': {
-                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
-            },
-            'body': json.dumps({'message': 'Patient created successfully', 'patient_id': patient_id})
-        }
+        return create_response(201, message='Patient created successfully', data= {'patient_id': patient_id})
+        # return {
+        #     'statusCode': 201,
+        #     'headers': {
+        #         "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+        #         "Access-Control-Allow-Origin": "*",
+        #         "Access-Control-Allow-Credentials": "true",
+        #         "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+        #     },
+        #     'body': json.dumps({'message': 'Patient created successfully', 'patient_id': patient_id})
+        # }
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
