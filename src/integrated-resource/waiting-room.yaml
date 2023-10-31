@@ -176,7 +176,7 @@ Resources:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"  # Sử dụng PutItem thay vì UpdateItem để tạo mới bản ghi
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem" # Sử dụng PutItem thay vì UpdateItem để tạo mới bản ghi
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestTemplates:
           application/json:
@@ -209,6 +209,55 @@ Resources:
               application/json: '{"error":"Internal server error"}'
       MethodResponses:
         - StatusCode: "200"
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
+
+  WaitingRoomMethodDelete:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref EpochResource
+      HttpMethod: DELETE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref InteCognitoAuthorizer
+      RequestParameters:
+        method.request.path.epoch: true
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/DeleteItem"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+          application/json:
+            "Fn::Sub":
+              - |
+                {
+                    "TableName": "${TableName}",
+                    "Key": {
+                        "type": {"S": "w"},
+                        "epoch": {"N": "$input.params('epoch')"}
+                    }
+                }
+              - TableName: !Ref TableName
+        IntegrationResponses:
+          - StatusCode: "204"
+            ResponseTemplates:
+              application/json: ""
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "204"
         - StatusCode: "400"
           ResponseModels:
             application/json: "Error"
