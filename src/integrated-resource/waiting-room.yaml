@@ -83,7 +83,7 @@ Resources:
                   {
                     "type": "$field.type.S",
                     "epoch": "$field.epoch.N",
-                    "produce": "$field.produce.N",
+                    "produce_id": "$field.produce.S",
                     "patient_id": "$field.patient_id.S",
                     "patient_name": "$field.patient_id.S",
                     "reason": "$field.reason.S",
@@ -187,9 +187,9 @@ Resources:
                   "Item": {
                     "type": {"S": "w"},
                     "epoch": {"N": "$input.path('$.epoch')"},
-                    "produce": {"N": "$input.path('$.produce')"},
+                    "produce_id": {"S": "$input.path('$.produce_id')"},
                     "patient_id": {"S": "$input.path('$.patient_id')"},
-                    "patient_id": {"S": "$input.path('$.patient_name')"},
+                    "patient_name": {"S": "$input.path('$.patient_name')"},
                     "reason": {"S": "$input.path('$.reason')"},
                     "status": {"N": "$input.path('$.status')"}
                   }
