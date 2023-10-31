@@ -62,6 +62,35 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
+  GetAllWithMPResource:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-all-with-medical-procedure
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /medical-procedure-group-with-detail
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
   UpdateOneFunction:
     Type: AWS::Serverless::Function
     Properties:
