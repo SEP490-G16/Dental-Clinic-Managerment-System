@@ -84,7 +84,8 @@ Resources:
                     "type": "$field.type.S",
                     "epoch": "$field.epoch.N",
                     "produce": "$field.produce.N",
-                    "patient_id": "$field.patient_id.N",
+                    "patient_id": "$field.patient_id.S",
+                    "patient_name": "$field.patient_id.S",
                     "reason": "$field.reason.S",
                     "status": "$field.status.N"
                   }
@@ -163,6 +164,58 @@ Resources:
           ResponseModels:
             application/json: "Error"
 
+  WaitingRoomMethodPost:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref WaitingRoomResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref InteCognitoAuthorizer
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"  # Sử dụng PutItem thay vì UpdateItem để tạo mới bản ghi
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+          application/json:
+            "Fn::Sub":
+              - |
+                {
+                  "TableName":"${TableName}",
+                  "Item": {
+                    "type": {"S": "w"},
+                    "epoch": {"N": "$input.path('$.epoch')"},
+                    "produce": {"N": "$input.path('$.produce')"},
+                    "patient_id": {"S": "$input.path('$.patient_id')"},
+                    "patient_id": {"S": "$input.path('$.patient_name')"},
+                    "reason": {"S": "$input.path('$.reason')"},
+                    "status": {"N": "$input.path('$.status')"}
+                  }
+                }
+              - TableName: !Ref TableName
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: "{}"
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "200"
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
+
   ApiDeployment:
     Type: "AWS::ApiGateway::Deployment"
     DependsOn:
@@ -171,133 +224,3 @@ Resources:
     Properties:
       RestApiId: !Ref Api
       StageName: !Sub "${StageName}"
-
-  # AuthorizersCognitoUserPools:
-  #   Type: AWS::ApiGateway::Authorizer
-  #   Properties:
-  #     Name: MyCognitoAuthorizer
-  #     Type: COGNITO_USER_POOLS
-  #     RestApiId: !Ref Api
-  #     IdentitySource: method.request.header.Authorization
-  #     ProviderARNs:
-  #       - !Ref UserPoolArn
-
-  # WaitingRoomResource:
-  #   Type: "AWS::ApiGateway::Resource"
-  #   Properties:
-  #     RestApiId: !Ref Api
-  #     ParentId: !GetAtt Api.RootResourceId
-  #     PathPart: "waiting-room"
-
-  # GetWaitingRoomResource:
-  #   Type: "AWS::ApiGateway::Resource"
-  #   Properties:
-  #     RestApiId: !Ref Api
-  #     ParentId: !GetAtt Api.RootResourceId
-  #     PathPart: "waiting-room/{start-time}/{end-time}"
-
-  # WaittingRoomMethodGet:
-  #   Type: "AWS::ApiGateway::Method"
-  #   Properties:
-  #     RestApiId: !Ref Api
-  #     ResourceId: !Ref GetWaitingRoomResource
-  #     HttpMethod: GET
-  #     AuthorizationType: COGNITO_USER_POOLS
-  #     AuthorizerId: MyCognitoAuthorizer
-  #     RequestParameters:
-  #       method.request.path.start-time: true
-  #       method.request.path.end-time: true
-  #     Integration:
-  #       Type: AWS
-  #       Credentials: !Ref APIGatewayIntegreatedRoleArn
-  #       IntegrationHttpMethod: POST
-  #       Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
-  #       PassthroughBehavior: WHEN_NO_TEMPLATES
-  #       RequestParameters:
-  #         integration.request.path.start-time: method.request.path.start-time
-  #         integration.request.path.end-time: method.request.path.end-time
-  #       RequestTemplates:
-  #         application/json: '{"TableName":"${TableName}","KeyConditionExpression":"type=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))",":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}}}'
-  #       IntegrationResponses:
-  #         - StatusCode: "200"
-  #           ResponseTemplates:
-  #             application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"appointment\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"type\": \"$field.type.S\",\n\t\t\t\"epoch\": \"$field.epoch.N\",\n\t\t\t\"info\": \"$field.info.S\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
-  #     MethodResponses:
-  #       - StatusCode: "200"
-
-  # ApiDeployment:
-  #   Type: "AWS::ApiGateway::Deployment"
-  #   DependsOn:
-  #     - WaittingRoomMethodGet
-  #   Properties:
-  #     RestApiId: !Ref Api
-  #     StageName: !Sub "${StageName}"
-
-  # Api:
-  #   Type: "AWS::Serverless::Api"
-  #   Properties:
-  #     StageName: !Ref StageName
-  #     Name: !Sub "${StageName}-${AppName}-api"
-  #     Auth:
-  #       DefaultAuthorizer: MyCognitoAuthorizer
-  #       Authorizers:
-  #         MyCognitoAuthorizer:
-  #           UserPoolArn: !Ref UserPoolArn
-  #     DefinitionBody:
-  #       swagger: "2.0"
-  #       info:
-  #         title: !Ref AppName
-  #       basePath: /waiting-room
-  #       paths:
-  #         /:
-  #           post:
-  #             x-amazon-apigateway-integration:
-  #               type: "aws"
-  #               credentials: !Ref APIGatewayIntegreatedRoleArn
-  #               httpMethod: "POST"
-  #               uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
-  #               passthroughBehavior: "WHEN_NO_MATCH"
-  #               requestTemplates:
-  #                 application/json:
-  #                   "Fn::Sub": '{"TableName":"${TableName}","Item":{"type":{"S":"$input.path(''$.type'')"},"epoch":{"N":"$input.path(''$.epoch'')"},"info":{"S":"$util.escapeJavaScript($input.path(''$.info''))"}}}'
-  #               responses:
-  #                 default:
-  #                   statusCode: "200"
-  #                   responseTemplates:
-  #                     application/json: "{}"
-  #             responses:
-  #               "200":
-  #                 description: "200 response"
-  #             security:
-  #               - MyCognitoAuthorizer: []
-
-  #         /{time-start}/{time-end}:
-  #           get:
-  #             x-amazon-apigateway-integration:
-  #               type: "aws"
-  #               credentials: !Ref APIGatewayIntegreatedRoleArn
-  #               httpMethod: "POST"
-  #               uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
-  #               passthroughBehavior: "WHEN_NO_TEMPLATES"
-  #               requestTemplates:
-  #                 application/json:
-  #                   "Fn::Sub": '{
-  #                     "TableName": "${TableName}",
-  #                     "KeyConditionExpression": "type = :typeVal AND epoch BETWEEN :timeStart AND :timeEnd",
-  #                     "ExpressionAttributeValues": {
-  #                     ":typeVal": {"S": "a"},
-  #                     ":timeStart": {"N": "$input.params(''time-start'')"},
-  #                     ":timeEnd": {"N": "$input.params(''time-end'')"}
-  #                     }
-  #                     }'
-  #             security:
-  #               - MyCognitoAuthorizer: []
-  #       securityDefinitions:
-  #         MyCognitoAuthorizer:
-  #           type: "apiKey"
-  #           name: "Authorization"
-  #           in: "header"
-  #           x-amazon-apigateway-authorizer:
-  #             type: "cognito_user_pools"
-  #             providerARNs:
-  #               - !Ref UserPoolArn
