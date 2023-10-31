@@ -77,12 +77,11 @@ def lambda_handler(event, context):
                                get_value_or_none(data, 'address'),
                                get_value_or_none(data, 'description'),
                                get_value_or_none(data, 'profile_image')))
-
+        
+        cursor.execute("SELECT patient_id FROM patient ORDER BY patient_id DESC LIMIT 1;")
+        row = cursor.fetchone()
+        patient_id = row[0]
         conn.commit()
-
-        # Lấy ID của bản ghi vừa được tạo
-        cursor.execute("SELECT LAST_INSERT_ID();")
-        patient_id = cursor.fetchone()[0]
 
         return {
             'statusCode': 201,
