@@ -26,9 +26,6 @@ def get_mysql_error_message(error_code):
 
 
 def create_response(status_code, message, data=None, exception_type=None):
-    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
-        'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
-    cursor = conn.cursor()
     response_body = {
         'message': message
     }
@@ -50,7 +47,9 @@ def create_response(status_code, message, data=None, exception_type=None):
     }
 
 def lambda_handler(event, context):
-    global conn, cursor
+    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
+        'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+    cursor = conn.cursor()
     try:
         query = "SELECT * FROM `medical_procedure_group` WHERE `active` != 0;"
         cursor.execute(query)
