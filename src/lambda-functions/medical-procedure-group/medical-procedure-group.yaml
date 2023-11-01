@@ -149,7 +149,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  CreateFunction:
+  CreateFunctionMethodPost:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: create
