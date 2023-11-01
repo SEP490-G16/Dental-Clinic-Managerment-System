@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Patient functions stack."
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  UserPoolArn:
+    Type: String
+  DBHost:
+    Type: String
+  Database:
+    Type: String
+  Username:
+    Type: String
+  Password:
+    Type: String
+  PyMySQLLayerArn:
+    Description: ARN of the Lambda layer to associate with our function
+    Type: String
+
+Resources:
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Name: !Sub "${StageName}-${AppName}-labo-api"
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !Ref UserPoolArn
+
+  CreateOneFunctionMethodPost:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /labo
+            Method: post
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
+  GetAllFunctionMethodGet:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-all
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /labo
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
