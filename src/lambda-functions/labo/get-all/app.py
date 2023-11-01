@@ -60,9 +60,6 @@ def lambda_handler(event, context):
         transformed_rows = [
             dict(zip(column_names, transform_row(row))) for row in rows]
 
-        if len(transformed_rows) == 0:
-            return create_response(404, data=[])
-
         return create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
