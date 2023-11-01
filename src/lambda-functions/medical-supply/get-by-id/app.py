@@ -51,7 +51,7 @@ def create_response(status_code, message, data=None, exception_type=None):
 def lambda_handler(event, context):
     conn = None
     cursor = None
-    response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+    response = create_response(500, 'Internal error', None)
     if ('pathParameters' not in event or
             'id' not in event['pathParameters'] or
             not event['pathParameters']['id'] or
@@ -64,14 +64,14 @@ def lambda_handler(event, context):
         cursor = conn.cursor()
         query = """
             SELECT * FROM `medical_supply`
-            WHERE active != 0 AND medical_supply_id = %s
+            WHERE status != 0 AND medical_supply_id = %s
         """
         cursor.execute(query, (event['pathParameters']['id']))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
         transformed_rows = [
             dict(zip(column_names, transform_row(row))) for row in rows]
-        response =  create_response(200, '', transformed_rows)
+        response = create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

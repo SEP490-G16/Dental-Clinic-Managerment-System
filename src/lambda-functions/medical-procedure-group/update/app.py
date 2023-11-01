@@ -17,7 +17,12 @@ def lambda_handler(event, context):
     if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
         return {
             'statusCode': 400,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Bad Request'})
         }
 
@@ -28,7 +33,12 @@ def lambda_handler(event, context):
         if data.get('name') is None:
             return {
                 'statusCode': 400,
-                'headers': {},
+                'headers': {
+                    "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+                },
                 'body': json.dumps({'message': 'name fields cannot be set to None'})
             }
 
@@ -47,26 +57,46 @@ def lambda_handler(event, context):
         if cursor.rowcount == 0:
             return {
                 'statusCode': 404,
-                'headers': {},
+                'headers': {
+                    "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+                },
                 'body': json.dumps({'message': 'medical procedure group not found'})
             }
 
         return {
             'statusCode': 200,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'medical procedure group updated successfully'})
         }
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         return {
             'statusCode': 500,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Database error', 'type': str(e.__class__.__name__)})
         }
     except Exception as e:
         print("Error:", e)
         return {
             'statusCode': 500,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Internal error', 'type': str(e.__class__.__name__)})
         }

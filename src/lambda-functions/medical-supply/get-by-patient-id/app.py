@@ -51,7 +51,7 @@ def create_response(status_code, message, data=None, exception_type=None):
 def lambda_handler(event, context):
     conn = None
     cursor = None
-    response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+    response = create_response(500, 'Internal error', None)
     if ('pathParameters' not in event or
             'id' not in event['pathParameters'] or
             not event['pathParameters']['id'] or
@@ -64,7 +64,7 @@ def lambda_handler(event, context):
         cursor = conn.cursor()
         query = """
             SELECT * FROM `medical_supply`
-            WHERE active != 0 AND patient_id = %s
+            WHERE status != 0 AND patient_id = %s
             ORDER BY medical_supply_id DESC;
         """
         cursor.execute(query, (event['pathParameters']['id']))

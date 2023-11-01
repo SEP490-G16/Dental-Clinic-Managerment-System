@@ -49,10 +49,10 @@ def create_response(status_code, message, data=None, exception_type=None):
 
 
 def lambda_handler(event, context):
-    # global conn, cursor
-    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
-                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
-    cursor = conn.cursor()
+    conn = None
+    cursor = None
+    response = create_response(500, 'Internal error', None)
+    
     if ('pathParameters' not in event or
             'id' not in event['pathParameters'] or
             not event['pathParameters']['id'] or
@@ -65,9 +65,11 @@ def lambda_handler(event, context):
         return create_response(400, 'Invalid paging value')
 
     try:
+        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        cursor = conn.cursor()
         query = """
             SELECT * FROM `medical_supply`
-            WHERE active != 0 AND labo_id = %s
+            WHERE status != 0 AND labo_id = %s
             ORDER BY medical_supply_id DESC
             LIMIT 11 OFFSET %s;
         """
@@ -77,15 +79,18 @@ def lambda_handler(event, context):
         transformed_rows = [
             dict(zip(column_names, transform_row(row))) for row in rows]
 
-        if len(transformed_rows) == 0:
-            return create_response(404, 'Medical supply not found')
-
-        return create_response(200, '', transformed_rows)
+        response = create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
-        return create_response(status_code, error_message, None, str(e.__class__.__name__))
+        response = create_response(status_code, error_message, None, str(e.__class__.__name__))
     except Exception as e:
         print("Error:", e)
-        return create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+    return response

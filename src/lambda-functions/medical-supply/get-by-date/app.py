@@ -51,7 +51,7 @@ def create_response(status_code, message, data=None, exception_type=None):
 def lambda_handler(event, context):
     conn = None
     cursor = None
-    response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+    response = create_response(500, 'Internal error', None)
     if ('pathParameters' not in event or
             'type' not in event['pathParameters'] or
             not event['pathParameters']['type'] or
@@ -78,7 +78,7 @@ def lambda_handler(event, context):
         attribute_query = event['pathParameters']['type'].replace("-","_")
         query = """
             SELECT * FROM `medical_supply`
-            WHERE active != 0 AND %s BETWEEN FROM_UNIXTIME(%s) AND FROM_UNIXTIME(%s)
+            WHERE status != 0 AND %s BETWEEN FROM_UNIXTIME(%s) AND FROM_UNIXTIME(%s)
             ORDER BY medical_supply_id DESC
             LIMIT 11 OFFSET %s;
         """
