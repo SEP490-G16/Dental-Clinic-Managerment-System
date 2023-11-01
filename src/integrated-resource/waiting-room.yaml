@@ -129,18 +129,19 @@ Resources:
             "Fn::Sub":
               - |
                 {
-                    "TableName": "${TableName}",
-                    "Key": {
-                        "type": {"S": "w"},
-                        "epoch": {"N": "$input.params('epoch')"}
-                    },
-                    "UpdateExpression": "SET #statusAlias = :statusValue",
-                    "ExpressionAttributeNames": {
-                        "#statusAlias": "status"
-                    },
-                    "ExpressionAttributeValues": {
-                        ":statusValue": {"N": "$input.json('$.status')"}
-                    }
+                  "TableName": "${TableName}",
+                  "Key": {
+                      "type": {"S": "w"},
+                      "epoch": {"N": "$input.params('epoch')"}
+                  },
+                  "UpdateExpression": "SET produce_id = :produce_id, patient_id = :patient_id, patient_name = :patient_name, reason = :reason, status = :status",
+                  "ExpressionAttributeValues": {
+                    ":produce_id": {"S": "$input.path('$.produce_id')"},
+                    ":patient_id": {"S": "$input.path('$.patient_id')"},
+                    ":patient_name": {"S": "$input.path('$.patient_name')"},
+                    ":reason": {"S": "$input.path('$.reason')"},
+                    ":status": {"N": "$input.path('$.status')"}
+                  }
                 }
               - TableName: !Ref TableName
         IntegrationResponses:
