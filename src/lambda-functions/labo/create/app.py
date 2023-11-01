@@ -57,7 +57,7 @@ def lambda_handler(event, context):
         if missing_fields:
             return create_response(400, f"Fields {', '.join(missing_fields)} are required")
 
-        query = """INSERT INTO `labo` (`name`, `description`, `phone_number	`, `email`, `address,)
+        query = """INSERT INTO `labo` (`name`, `description`, `phone_number`, `email`, `address`)
                 VALUES (%s, %s, %s, %s, %s);"""
 
         cursor.execute(query, (data.get('name'),
