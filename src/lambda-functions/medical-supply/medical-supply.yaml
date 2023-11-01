@@ -85,7 +85,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /medical-supply/{type}/{start-date}/{end-date}/{paging}
+            Path: /medical-supply/search/{type}/{start-date}/{end-date}/{paging}
             Method: get
       Policies:
         - Version: "2012-10-17"
