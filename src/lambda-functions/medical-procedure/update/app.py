@@ -74,17 +74,9 @@ def lambda_handler(event, context):
 
         conn.commit()
         if cursor.rowcount == 0:
-            return {
-                'statusCode': 404,
-                'headers': {},
-                'body': json.dumps({'message': 'medical procedure not found'})
-            }
+            return create_response(status_code=404, message='medical procedure not found')
 
-        return {
-            'statusCode': 200,
-            'headers': {},
-            'body': json.dumps({'message': 'medical procedure updated successfully'})
-        }
+        return create_response(status_code=200, message='medical procedure updated successfully') 
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
