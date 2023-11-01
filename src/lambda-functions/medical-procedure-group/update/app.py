@@ -2,19 +2,17 @@ import json
 import pymysql
 import os
 
-conn = pymysql.connect(host=os.environ.get('HOST'),
-                       user=os.environ.get('USERNAME'),
-                       passwd=os.environ.get('PASSWORD'),
-                       db=os.environ.get('DATABASE'))
-cursor = conn.cursor()
-
 
 def get_value_or_none(data, key):
     return data[key] if key in data else None
 
 
 def lambda_handler(event, context):
-    global conn, cursor
+    conn = pymysql.connect(host=os.environ.get('HOST'),
+                       user=os.environ.get('USERNAME'),
+                       passwd=os.environ.get('PASSWORD'),
+                       db=os.environ.get('DATABASE'))
+    cursor = conn.cursor()
 
     if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
         return {
