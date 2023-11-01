@@ -169,7 +169,7 @@ Resources:
           Properties:
             RestApiId: !Ref MyApi
             Path: /medical-procedure-group
-            Method: create
+            Method: post
       Policies:
         - Version: "2012-10-17"
           Statement:
