@@ -3,10 +3,6 @@ import pymysql
 import os
 import datetime
 
-conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
-    'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
-cursor = conn.cursor()
-
 
 def transform_row(row):
     transformed_row = []
@@ -51,19 +47,18 @@ def create_response(status_code, message, data=None, exception_type=None):
     }
 
 def lambda_handler(event, context):
-    global conn, cursor
+    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+    cursor = conn.cursor()
+    if event['httpMethod'] != 'DELETE' or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+        return create_response(400, message='Labo not found')
     try:
-        query = "SELECT * FROM `labo` WHERE `active` != 0;"
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        column_names = [column[0] for column in cursor.description]
-        transformed_rows = [
-            dict(zip(column_names, transform_row(row))) for row in rows]
-
-        if len(transformed_rows) == 0:
-            return create_response(404, data=[])
-
-        return create_response(200, '', transformed_rows)
+        id = event['pathParameters']['id']
+        query = "UPDATE `labo` SET `active`=0 WHERE labo_id=%s;"
+        cursor.execute(query, (id,))
+        conn.commit()
+        if cursor.rowcount == 0: 
+            return create_response(404, message='Labo not found')
+        return create_response(200, message='Labo deactivated successfully')
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
