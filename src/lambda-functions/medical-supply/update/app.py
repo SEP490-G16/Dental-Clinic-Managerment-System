@@ -42,7 +42,7 @@ def create_response(status_code, message, data=None, exception_type=None):
 def lambda_handler(event, context):
     conn = None
     cursor = None
-    response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+    response = create_response(500, 'Internal error', None)
     
     if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
         return create_response(400, 'Bad Request')
