@@ -239,3 +239,32 @@ Resources:
               Action:
                 - "rds:*"
               Resource: "*"
+
+  GetMedicalSupplyByStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-by-status
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /medical-supply/status/{status}/{paging}
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
