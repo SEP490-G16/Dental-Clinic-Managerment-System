@@ -3,10 +3,6 @@ import pymysql
 import os
 import datetime
 
-conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
-    'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
-cursor = conn.cursor()
-
 
 def transform_row(row):
     transformed_row = []
@@ -51,8 +47,14 @@ def create_response(status_code, message, data=None, exception_type=None):
     }
 
 def lambda_handler(event, context):
-    global conn, cursor
+    conn = None
+    cursor = None
+    response = create_response(500, 'Internal error', None)
     try:
+        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
+            'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        cursor = conn.cursor()
+
         query = "SELECT * FROM `labo` WHERE `active` != 0;"
         cursor.execute(query)
         rows = cursor.fetchall()
@@ -60,12 +62,18 @@ def lambda_handler(event, context):
         transformed_rows = [
             dict(zip(column_names, transform_row(row))) for row in rows]
 
-        return create_response(200, '', transformed_rows)
+        response = create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
-        return create_response(status_code, error_message, None, str(e.__class__.__name__))
+        response = create_response(status_code, error_message, None, str(e.__class__.__name__))
     except Exception as e:
         print("Error:", e)
-        return create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+    return response

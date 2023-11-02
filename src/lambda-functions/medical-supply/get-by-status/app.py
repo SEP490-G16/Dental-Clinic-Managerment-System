@@ -70,9 +70,25 @@ def lambda_handler(event, context):
                        passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            SELECT * FROM `medical_supply`
-            WHERE status = %s
-            ORDER BY medical_supply_id DESC
+            SELECT 
+            	ms.medical_supply_id AS ms_id,
+                ms.type AS ms_type,
+                ms.name AS ms_name,
+                ms.quantity AS ms_quantity,
+                ms.unit_price AS ms_unit_price,
+                ms.order_date AS ms_order_date,
+                ms.orderer AS ms_orderer,
+                ms.received_date AS ms_received_date,
+                ms.receiver AS ms_receiver,
+                ms.warranty AS ms_warranty,
+                ms.description AS ms_description,
+                ms.status AS ms_status,
+                ms.facility_id AS facility_id,
+                p.patient_id AS p_patient_id,
+                p.patient_name AS p_patient_name
+            FROM `medical_supply` ms LEFT JOIN `patient` p ON ms.patient_id = p.patient_id
+            WHERE ms.status = %s
+            ORDER BY ms.medical_supply_id DESC
             LIMIT 11 OFFSET %s;
         """
         cursor.execute(query, (event['pathParameters']['status'], offset))
