@@ -51,7 +51,7 @@ def lambda_handler(event, context):
     cursor = None
     response = create_response(500, 'Internal error', None)
     if event['httpMethod'] != 'DELETE' or not event.get('pathParameters') or 'id' not in event['pathParameters']:
-        return create_response(400, message='Medical supply group not found')
+        return create_response(400, message='Medical supply not found')
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()

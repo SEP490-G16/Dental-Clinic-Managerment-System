@@ -13,7 +13,6 @@ def transform_row(row):
             transformed_row.append(value)
     return tuple(transformed_row)
 
-
 def get_mysql_error_message(error_code):
     error_messages = {
         1045: "Access denied for user",
@@ -47,36 +46,31 @@ def create_response(status_code, message, data=None, exception_type=None):
         'body': json.dumps(response_body, ensure_ascii=False)
     }
 
-
 def lambda_handler(event, context):
-    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
-    cursor = conn.cursor()
-    if ('pathParameters' not in event or
-            'id' not in event['pathParameters'] or
-            not event['pathParameters']['id'] or
-            event['httpMethod'] != 'GET'):
-        return create_response(400, 'Bad Request')
-
+    conn = None
+    cursor = None
+    response = create_response(500, 'Internal error', None)
+    if event['httpMethod'] != 'DELETE' or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+        return create_response(400, message='Facility not found')
     try:
+        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        cursor = conn.cursor()
         id = event['pathParameters']['id']
-        query = """
-            SELECT * FROM `medical_procedure`
-            WHERE `medical_procedure_id` = %s AND active != 0;
-        """
-        cursor.execute(query, (id, ))
-        rows = cursor.fetchall()
-        column_names = [column[0] for column in cursor.description]
-        transformed_rows = [
-            dict(zip(column_names, transform_row(row))) for row in rows]
-
-        if len(transformed_rows) == 0:
-            return create_response(404, 'Medical procedure not found')
-        return create_response(200, '', transformed_rows[0])
+        query = "UPDATE `facility` SET `active`=0 WHERE facility_id=%s;"
+        cursor.execute(query, (id,))
+        conn.commit()
+        response = create_response(200, message='Facility deactivated successfully')
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
-        return create_response(status_code, error_message, None, str(e.__class__.__name__))
+        response = create_response(status_code, error_message, None, str(e.__class__.__name__))
     except Exception as e:
         print("Error:", e)
-        return create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+    return response

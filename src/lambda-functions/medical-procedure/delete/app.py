@@ -53,7 +53,7 @@ def lambda_handler(event, context):
         return create_response(400, message='Medical procedure group not found')
     try:
         id = event['pathParameters']['id']
-        query = "UPDATE `patient` SET `active`=0 WHERE medical_procedure_id=%s;"
+        query = "UPDATE `medical_procedure` SET `active`=0 WHERE medical_procedure_id=%s;"
         cursor.execute(query, (id,))
         conn.commit()
         if cursor.rowcount == 0:  # Nếu không có bản ghi nào được cập nhật

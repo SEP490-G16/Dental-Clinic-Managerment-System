@@ -3,15 +3,8 @@ import pymysql
 import os
 import datetime
 
-
-def transform_row(row):
-    transformed_row = []
-    for value in row:
-        if isinstance(value, datetime.date):
-            transformed_row.append(str(value))
-        else:
-            transformed_row.append(value)
-    return tuple(transformed_row)
+def get_value_or_none(data, key):
+    return data[key] if key in data else None
 
 def get_mysql_error_message(error_code):
     error_messages = {
@@ -50,33 +43,43 @@ def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    if event['httpMethod'] != 'POST' or not event.get('body'):
-        return create_response(400, message='Bad Request') 
+    
+    if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+        return create_response(400, 'Bad Request')
 
     try:
+        id = event['pathParameters']['id']
+        data = json.loads(event['body'])
+
         required_fields = ['address', 'name', 'manager_id']
+
         missing_fields = [
             field for field in required_fields if not data.get(field)]
+
         if missing_fields:
-            return create_response(status_code=400, message=f"Fields {', '.join(missing_fields)} are required") 
+            return create_response(400, f"Fields {', '.join(missing_fields)} are required")
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
-        data = json.loads(event['body'])
         query = """
-        INSERT INTO `facility` 
-        (`name`, `address`, `manager_id`) 
-        VALUES 
-        (%s, %s, %s);
-        """
-        cursor.execute(query, (data.get('name'),
-                               data.get('address'),
-                               data.get('manager_id')))
+            UPDATE `facility` 
+            SET `name` = %s, `address` = %s, `manager_id` = %s
+            WHERE facility_id=%s;
+            """
+        cursor.execute(query, ( data.get('name'),
+                                data.get('address'),
+                                data.get('manager_id'),
+                                id))
+
         conn.commit()
-        response = create_response(status_code=201, message='Facility created successfully')
+        if cursor.rowcount == 0:
+            response =  create_response(status_code=404, message='Facility not found')
+        else:
+            response = create_response(status_code=200, message='Facility updated successfully') 
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
+        error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
-        response = create_response(status_code, get_mysql_error_message(e.args[0]), None, str(e.__class__.__name__))
+        response = create_response(status_code, error_message, None, str(e.__class__.__name__))
     except Exception as e:
         print("Error:", e)
         response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
