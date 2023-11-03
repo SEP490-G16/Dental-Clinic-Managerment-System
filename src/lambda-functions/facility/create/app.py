@@ -54,25 +54,29 @@ def lambda_handler(event, context):
         return create_response(400, message='Bad Request') 
 
     try:
-        required_fields = ['address', 'name', 'manager_id']
-        missing_fields = [
-            field for field in required_fields if not data.get(field)]
+        data = json.loads(event['body'])
+        required_fields = ['address', 'name', 'manager_name', 'facility_phone_number', 'manager_phone_number']
+        missing_fields = [field for field in required_fields if not data.get(field)]
         if missing_fields:
-            return create_response(status_code=400, message=f"Fields {', '.join(missing_fields)} are required") 
+            return create_response(status_code=400, message=f"Fields {', '.join(missing_fields)} are required")
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
-        data = json.loads(event['body'])
         query = """
-        INSERT INTO `facility` 
-        (`name`, `address`, `manager_id`) 
-        VALUES 
-        (%s, %s, %s);
+            INSERT INTO `facility` 
+            (`name`, `address`, `manager_name`, `facility_phone_number`, `manager_phone_number`) 
+            VALUES 
+            (%s, %s, %s, %s, %s);
         """
         cursor.execute(query, (data.get('name'),
                                data.get('address'),
-                               data.get('manager_id')))
+                               data.get('manager_name'),
+                               data.get('facility_phone_number'),
+                               data.get('manager_phone_number')))
+        cursor.execute("SELECT facility_id FROM facility ORDER BY facility_id DESC LIMIT 1;")
+        row = cursor.fetchone()
+        id = row[0]
         conn.commit()
-        response = create_response(status_code=201, message='Facility created successfully')
+        response = create_response(status_code=201, message='Facility created successfully', data= {'facility_id': id})
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500

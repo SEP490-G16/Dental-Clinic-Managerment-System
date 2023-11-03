@@ -124,3 +124,17 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+
+  MaterialFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: material/material.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn

@@ -82,8 +82,10 @@ def lambda_handler(event, context):
                 ms.receiver AS ms_receiver,
                 ms.warranty AS ms_warranty,
                 ms.description AS ms_description,
+                ms.used_date AS ms_used_date,
                 ms.status AS ms_status,
                 ms.facility_id AS facility_id,
+                ms.labo_id AS lb_id,
                 p.patient_id AS p_patient_id,
                 p.patient_name AS p_patient_name
             FROM `medical_supply` ms LEFT JOIN `patient` p ON ms.patient_id = p.patient_id

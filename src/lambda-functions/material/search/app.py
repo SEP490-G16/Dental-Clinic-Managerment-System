@@ -3,8 +3,16 @@ import pymysql
 import os
 import datetime
 
-def get_value_or_none(data, key):
-    return data[key] if key in data else None
+
+def transform_row(row):
+    transformed_row = []
+    for value in row:
+        if isinstance(value, datetime.date):
+            transformed_row.append(str(value))
+        else:
+            transformed_row.append(value)
+    return tuple(transformed_row)
+
 
 def get_mysql_error_message(error_code):
     error_messages = {
@@ -39,43 +47,41 @@ def create_response(status_code, message, data=None, exception_type=None):
         'body': json.dumps(response_body, ensure_ascii=False)
     }
 
+
 def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    
-    if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+    if ('pathParameters' not in event or
+            'name' not in event['pathParameters'] or
+            not event['pathParameters']['name'] or
+            'paging' not in event['pathParameters'] or
+            not event['pathParameters']['paging'] or
+            event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
+    try:
+        page_number = int(event['pathParameters']['paging'])
+        offset = (page_number - 1) * 10
+    except ValueError:
+        return create_response(400, 'Invalid paging value')
 
     try:
-        id = event['pathParameters']['id']
-        data = json.loads(event['body'])
-
-        required_fields = ['address', 'name', 'manager_name', 'facility_phone_number', 'manager_phone_number']
-
-        missing_fields = [field for field in required_fields if not data.get(field)]
-
-        if missing_fields:
-            return create_response(400, f"Fields {', '.join(missing_fields)} are required")
-        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
+                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            UPDATE `facility` 
-            SET `name` = %s, `address` = %s, `manager_name` = %s, `facility_phone_number` = %s, `manager_phone_number` = %s
-            WHERE facility_id=%s;
-            """
-        cursor.execute(query, ( data.get('name'),
-                                data.get('address'),
-                                data.get('manager_name'),
-                                data.get('facility_phone_number'),
-                                data.get('manager_phone_number'),
-                                id))
+            SELECT * FROM `medical`
+            WHERE status != 0 AND material_name LIKE %s
+            ORDER BY material_name ASC
+            LIMIT 11 OFFSET %s;
+        """
+        cursor.execute(query, (event['pathParameters']['name'], offset))
+        rows = cursor.fetchall()
+        column_names = [column[0] for column in cursor.description]
+        transformed_rows = [
+            dict(zip(column_names, transform_row(row))) for row in rows]
 
-        conn.commit()
-        if cursor.rowcount == 0:
-            response =  create_response(status_code=404, message='Facility not found')
-        else:
-            response = create_response(status_code=200, message='Facility updated successfully') 
+        response =  create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

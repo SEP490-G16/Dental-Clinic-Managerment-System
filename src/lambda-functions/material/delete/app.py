@@ -3,8 +3,15 @@ import pymysql
 import os
 import datetime
 
-def get_value_or_none(data, key):
-    return data[key] if key in data else None
+
+def transform_row(row):
+    transformed_row = []
+    for value in row:
+        if isinstance(value, datetime.date):
+            transformed_row.append(str(value))
+        else:
+            transformed_row.append(value)
+    return tuple(transformed_row)
 
 def get_mysql_error_message(error_code):
     error_messages = {
@@ -43,39 +50,16 @@ def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    
-    if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
-        return create_response(400, 'Bad Request')
-
+    if event['httpMethod'] != 'DELETE' or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+        return create_response(400, message='Medical not found')
     try:
-        id = event['pathParameters']['id']
-        data = json.loads(event['body'])
-
-        required_fields = ['address', 'name', 'manager_name', 'facility_phone_number', 'manager_phone_number']
-
-        missing_fields = [field for field in required_fields if not data.get(field)]
-
-        if missing_fields:
-            return create_response(400, f"Fields {', '.join(missing_fields)} are required")
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
-        query = """
-            UPDATE `facility` 
-            SET `name` = %s, `address` = %s, `manager_name` = %s, `facility_phone_number` = %s, `manager_phone_number` = %s
-            WHERE facility_id=%s;
-            """
-        cursor.execute(query, ( data.get('name'),
-                                data.get('address'),
-                                data.get('manager_name'),
-                                data.get('facility_phone_number'),
-                                data.get('manager_phone_number'),
-                                id))
-
+        id = event['pathParameters']['id']
+        query = "UPDATE `medical` SET `status`=0 WHERE material_id=%s;"
+        cursor.execute(query, (id,))
         conn.commit()
-        if cursor.rowcount == 0:
-            response =  create_response(status_code=404, message='Facility not found')
-        else:
-            response = create_response(status_code=200, message='Facility updated successfully') 
+        response = create_response(200, message='Medical deactivated successfully')
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
