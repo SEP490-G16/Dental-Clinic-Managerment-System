@@ -51,7 +51,7 @@ def lambda_handler(event, context):
         id = event['pathParameters']['id']
         data = json.loads(event['body'])
 
-        required_fields = ['material_name', 'unit']
+        required_fields = ['creator', 'created_date']
 
         missing_fields = [
             field for field in required_fields if not data.get(field)]
@@ -61,19 +61,20 @@ def lambda_handler(event, context):
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            UPDATE `material` 
-            SET `material_name` = %s, `unit` = %s
-            WHERE material_id=%s;
+            UPDATE `import_material` 
+            SET `creator` = %s, `description` = %s, `created_date` = FROM_UNIXTIME(%s)
+            WHERE id=%s;
             """
-        cursor.execute(query, ( data.get('material_name'),
-                                data.get('unit'),
+        cursor.execute(query, ( data.get('creator'),
+                                get_value_or_none(data, 'description'),
+                                data.get('created_date'),
                                 id))
 
         conn.commit()
         if cursor.rowcount == 0:
-            response =  create_response(status_code=404, message='Material not change or not found')
+            response =  create_response(status_code=404, message='Import material not change or not found')
         else:
-            response = create_response(status_code=200, message='Material updated successfully') 
+            response = create_response(status_code=200, message='Import material updated successfully') 
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

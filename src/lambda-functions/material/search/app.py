@@ -70,12 +70,12 @@ def lambda_handler(event, context):
                        passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            SELECT * FROM `medical`
+            SELECT * FROM `material`
             WHERE status != 0 AND material_name LIKE %s
             ORDER BY material_name ASC
             LIMIT 11 OFFSET %s;
         """
-        cursor.execute(query, (event['pathParameters']['name'], offset))
+        cursor.execute(query, (event['pathParameters']['name'] + "%", offset))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
         transformed_rows = [

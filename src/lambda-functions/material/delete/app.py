@@ -56,7 +56,7 @@ def lambda_handler(event, context):
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         id = event['pathParameters']['id']
-        query = "UPDATE `medical` SET `status`=0 WHERE material_id=%s;"
+        query = "UPDATE `material` SET `status`=0 WHERE material_id=%s;"
         cursor.execute(query, (id,))
         conn.commit()
         response = create_response(200, message='Medical deactivated successfully')

@@ -43,37 +43,30 @@ def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    
-    if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+    if event['httpMethod'] != 'POST' or not event.get('body'):
         return create_response(400, 'Bad Request')
+    data = json.loads(event['body'])
 
+    required_fields = ['creator']
+
+    missing_fields = [field for field in required_fields if not data.get(field)]
+
+    if missing_fields:
+        return create_response(400, f"Fields {', '.join(missing_fields)} are required")
     try:
-        id = event['pathParameters']['id']
-        data = json.loads(event['body'])
-
-        required_fields = ['material_name', 'unit']
-
-        missing_fields = [
-            field for field in required_fields if not data.get(field)]
-
-        if missing_fields:
-            return create_response(400, f"Fields {', '.join(missing_fields)} are required")
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
-        query = """
-            UPDATE `material` 
-            SET `material_name` = %s, `unit` = %s
-            WHERE material_id=%s;
-            """
-        cursor.execute(query, ( data.get('material_name'),
-                                data.get('unit'),
-                                id))
+        query = """INSERT INTO `import_material` (`creator`, `description`)
+                VALUES (%s, %s);"""
 
+        cursor.execute(query, ( data.get('creator'),
+                                get_value_or_none(data, 'description')))
+        
+        cursor.execute("SELECT import_material_id FROM import_material ORDER BY import_material_id DESC LIMIT 1;")
+        row = cursor.fetchone()
+        id = row[0]
         conn.commit()
-        if cursor.rowcount == 0:
-            response =  create_response(status_code=404, message='Material not change or not found')
-        else:
-            response = create_response(status_code=200, message='Material updated successfully') 
+        response = create_response(201, message='Import material created successfully', data= {'import_material_id': id})
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
