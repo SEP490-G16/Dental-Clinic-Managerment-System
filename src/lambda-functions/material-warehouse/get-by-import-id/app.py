@@ -2,13 +2,15 @@ import json
 import pymysql
 import os
 import datetime
-
+import decimal
 
 def transform_row(row):
     transformed_row = []
     for value in row:
         if isinstance(value, datetime.date):
             transformed_row.append(str(value))
+        elif isinstance(value, decimal.Decimal):
+            transformed_row.append(float(value))
         else:
             transformed_row.append(value)
     return tuple(transformed_row)
