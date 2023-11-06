@@ -50,15 +50,15 @@ def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    if event['httpMethod'] != 'DELETE' or not event.get('pathParameters') or 'material_id' not in event['pathParameters'] or 'inport_material_id' not in event['pathParameters']:
+    if event['httpMethod'] != 'DELETE' or not event.get('pathParameters') or 'material_id' not in event['pathParameters'] or 'import_material_id' not in event['pathParameters']:
         return create_response(400, message='Medical supply not found')
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         material_id = event['pathParameters']['material_id']
-        inport_material_id = event['pathParameters']['inport_material_id']
-        query = "UPDATE `material_warehouse` SET `status`=0 WHERE material_id=%s AND inport_material_id=%s;"
-        cursor.execute(query, (material_id,inport_material_id))
+        import_material_id = event['pathParameters']['import_material_id']
+        query = "UPDATE `material_warehouse` SET `status`=0 WHERE material_id=%s AND import_material_id=%s;"
+        cursor.execute(query, (material_id,import_material_id))
         conn.commit()
         response = create_response(200, message='Material in warehouse deactivated successfully')
     except pymysql.MySQLError as e:
