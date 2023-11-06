@@ -49,20 +49,19 @@ def lambda_handler(event, context):
     data = json.loads(event['body'])
 
     seen = set()
-    duplicate_items = []
+    material_ids = {}
+    duplicated_material_ids = []
 
     for item in data:
-        item_str = json.dumps(item, sort_keys=True)
-        if item_str in seen:
-            duplicate_items.append(item)
-        else:
-            seen.add(item_str)
-    
-    if duplicate_items:
-        response = create_response(400, 'Duplicate items found in the request', duplicates=duplicate_items)
-    else:
-        response = create_response(200, 'No duplicate items found in the request')
+        material_id = item.get('material_id')
+        if material_id in material_ids:
+            duplicated_material_ids.append(material_id)
+        material_ids[material_id] = True
 
+    if duplicated_material_ids:
+        return create_response(400, "Material IDs are duplicated in the request.", duplicated_material_ids)
+
+    # check required
     missing_fields_list = []
 
     required_fields = ['material_id', 'inport_material_id', 'quantity_import', 'price', 'warranty', 'discount']
@@ -76,12 +75,6 @@ def lambda_handler(event, context):
         missing_materials = ', '.join([f"Material ID: {item['material_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
         return create_response(400, f"Missing fields for the following materials: {missing_materials}")
 
-    for item in data:
-        item_str = json.dumps(item, sort_keys=True)
-        if item_str in seen:
-            return create_response
-        else:
-            seen.add(item_str)
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         conn.autocommit(False)
