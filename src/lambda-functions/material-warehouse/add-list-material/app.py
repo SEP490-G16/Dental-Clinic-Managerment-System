@@ -48,7 +48,6 @@ def lambda_handler(event, context):
 
     data = json.loads(event['body'])
 
-    seen = set()
     material_ids = {}
     duplicated_material_ids = []
 
