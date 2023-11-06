@@ -95,7 +95,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  UpdateMaterialFunction:
+  UpdateMaterialInWarehouseFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: update
