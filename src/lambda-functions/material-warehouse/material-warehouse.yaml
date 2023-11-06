@@ -182,7 +182,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  GetMaterialByRemainingFunction:
+  GetMaterialByMaterialIdFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: get-by-material-id
