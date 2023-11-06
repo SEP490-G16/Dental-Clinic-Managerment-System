@@ -53,20 +53,27 @@ def lambda_handler(event, context):
     cursor = None
     response = create_response(500, 'Internal error', None)
     if ('pathParameters' not in event or
-            'import_material_id' not in event['pathParameters'] or
-            not event['pathParameters']['import_material_id'] or
+            'paging' not in event['pathParameters'] or
+            not event['pathParameters']['paging'] or
             event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
+    try:
+        page_number = int(event['pathParameters']['paging'])
+        offset = (page_number - 1) * 10
+    except ValueError:
+        return create_response(400, 'Invalid paging value')
     
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
                        passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            SELECT * FROM `material_warehouse`
-            WHERE status != 0 AND import_material_id = %s
+          SELECT * FROM `material_warehouse`
+          WHERE status != 0
+          ORDER BY remaining DESC
+          LIMIT 11 OFFSET %s
         """
-        cursor.execute(query, (event['pathParameters']['import_material_id']))
+        cursor.execute(query, (offset))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
         transformed_rows = [
