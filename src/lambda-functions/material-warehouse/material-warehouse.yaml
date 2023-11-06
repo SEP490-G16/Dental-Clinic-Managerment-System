@@ -115,7 +115,7 @@ Resources:
           Properties:
             RestApiId: !Ref MyApi
             Path: /material-warehouse/{import_material_id}/{material_id}
-            Method: post
+            Method: put
       Policies:
         - Version: "2012-10-17"
           Statement:
