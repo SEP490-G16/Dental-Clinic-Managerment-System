@@ -45,36 +45,67 @@ def lambda_handler(event, context):
     response = create_response(500, 'Internal error', None)
     if event['httpMethod'] != 'POST' or not event.get('body'):
         return create_response(400, 'Bad Request')
+
     data = json.loads(event['body'])
 
-    required_fields = ['creator']
+    seen = set()
+    duplicate_items = []
 
-    missing_fields = [field for field in required_fields if not data.get(field)]
+    for item in data:
+        item_str = json.dumps(item, sort_keys=True)
+        if item_str in seen:
+            duplicate_items.append(item)
+        else:
+            seen.add(item_str)
+    
+    if duplicate_items:
+        response = create_response(400, 'Duplicate items found in the request', duplicates=duplicate_items)
+    else:
+        response = create_response(200, 'No duplicate items found in the request')
 
-    if missing_fields:
-        return create_response(400, f"Fields {', '.join(missing_fields)} are required")
+    missing_fields_list = []
+
+    required_fields = ['material_id', 'inport_material_id', 'quantity_import', 'price', 'warranty', 'discount']
+
+    for item in data:
+        missing_fields = [field for field in required_fields if field not in item]
+        if missing_fields:
+            missing_fields_list.append({'material_id': item.get('material_id'), 'missing_fields': missing_fields})
+
+    if missing_fields_list:
+        missing_materials = ', '.join([f"Material ID: {item['material_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
+        return create_response(400, f"Missing fields for the following materials: {missing_materials}")
+
+    for item in data:
+        item_str = json.dumps(item, sort_keys=True)
+        if item_str in seen:
+            return create_response
+        else:
+            seen.add(item_str)
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        conn.autocommit(False)
         cursor = conn.cursor()
-        query = """INSERT INTO `import_material` (`creator`, `description`)
-                VALUES (%s, %s);"""
-
-        cursor.execute(query, ( data.get('creator'),
-                                get_value_or_none(data, 'description')))
-        
-        cursor.execute("SELECT id FROM import_material ORDER BY id DESC LIMIT 1;")
-        row = cursor.fetchone()
-        id = row[0]
+        query = """INSERT INTO `material_warehouse` (`material_id`, `inport_material_id`, `quantity_import`, `remaining`, `price`, `warranty`, `discount`) VALUES """
+        query_data = ()
+        for item in data:
+            query += "(%s, %s, %s, %s, %s, FROM_UNIXTIME(%s), %s),"
+            query_data += (get_value_or_none(item, 'material_id'), get_value_or_none(item, 'inport_material_id'), get_value_or_none(item, 'quantity_import'), get_value_or_none(item, 'quantity_import'), get_value_or_none(item, 'price'), get_value_or_none(item, 'warranty'), get_value_or_none(item, 'discount'))
+        cursor.execute(query[:-1], query_data)
         conn.commit()
-        response = create_response(201, message='Import material created successfully', data= {'import_material_id': id})
+        response = create_response(201, message='Material insert successfully into warehouse')
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
         response = create_response(status_code, error_message, None, str(e.__class__.__name__))
+        if conn:
+            conn.rollback()
     except Exception as e:
         print("Error:", e)
         response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        if conn:
+            conn.rollback()
     finally:
         if cursor:
             cursor.close()
