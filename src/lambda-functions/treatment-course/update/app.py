@@ -32,7 +32,12 @@ def lambda_handler(event, context):
     if event['httpMethod'] != 'PUT' or not event.get('body'):
         return {
             'statusCode': 400,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Bad Request'})
         }
 
@@ -49,7 +54,12 @@ def lambda_handler(event, context):
         if missing_fields:
             return {
                 'statusCode': 400,
-                'headers': {},
+                'headers': {
+                    "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+                },
                 'body': json.dumps({'message': f"Fields {', '.join(missing_fields)} are required"})
             }
 
@@ -70,7 +80,12 @@ def lambda_handler(event, context):
         if cursor.rowcount == 0:
             return {
                 'statusCode': 404,
-                'headers': {},
+                'headers': {
+                    "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+                },
                 'body': json.dumps({'message': 'Treatment course not found'})
             }
 
@@ -78,7 +93,12 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Treatment course updated successfully'})
         }
     except pymysql.MySQLError as e:
@@ -86,13 +106,23 @@ def lambda_handler(event, context):
         error_message = get_mysql_error_message(e.args[0])
         return {
             'statusCode': 400 if e.args[0] in [1452, 1062, 1054] else 500,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': error_message, 'type': str(e.__class__.__name__)})
         }
     except Exception as e:
         print("Error:", e)
         return {
             'statusCode': 500,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Internal error', 'type': str(e.__class__.__name__)})
         }

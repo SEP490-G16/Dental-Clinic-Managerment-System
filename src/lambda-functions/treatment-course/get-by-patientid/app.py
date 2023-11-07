@@ -38,7 +38,12 @@ def lambda_handler(event, context):
             event['httpMethod'] != 'GET'):
         return {
             'statusCode': 400,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Bad Request'})
         }
 
@@ -58,13 +63,23 @@ def lambda_handler(event, context):
         if len(transformed_rows) == 0:
             return {
                 'statusCode': 404,
-                'headers': {},
+                'headers': {
+                    "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+                },
                 'body': json.dumps({'message': 'Patient not found'}, ensure_ascii=False)
             }
 
         return {
             'statusCode': 200,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps(transformed_rows, ensure_ascii=False)
         }
     except pymysql.MySQLError as e:
@@ -72,13 +87,23 @@ def lambda_handler(event, context):
         error_message = get_mysql_error_message(e.args[0])
         return {
             'statusCode': 400 if e.args[0] in [1452, 1062, 1054] else 500,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': error_message, 'type': str(e.__class__.__name__)})
         }
     except Exception as e:
         print("Error:", e)
         return {
             'statusCode': 500,
-            'headers': {},
+            'headers': {
+                "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
+            },
             'body': json.dumps({'message': 'Internal error', 'type': str(e.__class__.__name__)})
         }

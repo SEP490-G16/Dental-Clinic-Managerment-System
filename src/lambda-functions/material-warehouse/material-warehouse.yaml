@@ -85,7 +85,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /material-warehouse/{import_material_id}/{material_id}
+            Path: /material-warehouse/material_warehouse_id/{material_warehouse_id}
             Method: delete
       Policies:
         - Version: "2012-10-17"
@@ -114,7 +114,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /material-warehouse/{import_material_id}/{material_id}
+            Path: /material-warehouse/material_warehouse_id/{material_warehouse_id}
             Method: put
       Policies:
         - Version: "2012-10-17"

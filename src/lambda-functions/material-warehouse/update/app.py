@@ -44,12 +44,11 @@ def lambda_handler(event, context):
     cursor = None
     response = create_response(500, 'Internal error', None)
     
-    if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'material_id' not in event['pathParameters'] or 'import_material_id' not in event['pathParameters']:
+    if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'material_warehouse_id' not in event['pathParameters']:
         return create_response(400, 'Bad Request')
 
     try:
-        material_id = event['pathParameters']['material_id']
-        import_material_id = event['pathParameters']['import_material_id']
+        material_warehouse_id = event['pathParameters']['material_warehouse_id']
         data = json.loads(event['body'])
 
         required_fields = ['quantity_import', 'remaining', 'price', 'warranty', 'discount']
@@ -64,15 +63,14 @@ def lambda_handler(event, context):
         query = """
             UPDATE `material_warehouse` 
             SET `quantity_import` = %s, `remaining` = %s, `price` = %s, `warranty` = FROM_UNIXTIME(%s), `discount` = %s
-            WHERE material_id=%s AND import_material_id=%s;
+            WHERE material_warehouse_id=%s;
             """
         cursor.execute(query, (get_value_or_none(data, 'quantity_import'), 
                                get_value_or_none(data, 'remaining'), 
                                get_value_or_none(data, 'price'), 
                                get_value_or_none(data, 'warranty'), 
                                get_value_or_none(data, 'discount'),
-                               material_id,
-                               import_material_id))
+                               material_warehouse_id))
 
         conn.commit()
         if cursor.rowcount == 0:
