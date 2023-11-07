@@ -66,7 +66,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  DeleteMaterialFunction:
+  DeleteMaterialByMWIFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: delete
@@ -95,7 +95,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  UpdateMaterialInWarehouseFunction:
+  UpdateMaterialInWarehouseBYMWIFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: update
