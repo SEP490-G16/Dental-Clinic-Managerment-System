@@ -70,9 +70,10 @@ def lambda_handler(event, context):
                        passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-          SELECT * FROM `material_warehouse`
-          WHERE status != 0
-          ORDER BY remaining DESC
+          SELECT * FROM `material_warehouse` mw
+          LEFT JOIN `material` m on mw.material_id = m.material_id
+          WHERE mw.status != 0
+          ORDER BY mw.remaining DESC
           LIMIT 11 OFFSET %s
         """
         cursor.execute(query, (offset))

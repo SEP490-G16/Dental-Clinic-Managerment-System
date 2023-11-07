@@ -3,16 +3,8 @@ import pymysql
 import os
 import datetime
 
-
-def transform_row(row):
-    transformed_row = []
-    for value in row:
-        if isinstance(value, datetime.date):
-            transformed_row.append(str(value))
-        else:
-            transformed_row.append(value)
-    return tuple(transformed_row)
-
+def get_value_or_none(data, key):
+    return data[key] if key in data else None
 
 def get_mysql_error_message(error_code):
     error_messages = {
@@ -47,38 +39,40 @@ def create_response(status_code, message, data=None, exception_type=None):
         'body': json.dumps(response_body, ensure_ascii=False)
     }
 
-
 def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    if ('pathParameters' not in event or
-            'paging' not in event['pathParameters'] or
-            not event['pathParameters']['paging'] or
-            event['httpMethod'] != 'GET'):
+    if event['httpMethod'] != 'POST' or not event.get('body'):
         return create_response(400, 'Bad Request')
-    try:
-        page_number = int(event['pathParameters']['paging'])
-        offset = (page_number - 1) * 10
-    except ValueError:
-        return create_response(400, 'Invalid paging value')
-    try:
-        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
-                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
-        cursor = conn.cursor()
-        query = """
-            SELECT * FROM `import_material`
-            WHERE status != 0
-            ORDER BY id DESC
-            LIMIT 11 OFFSET %s;
-        """
-        cursor.execute(query, (offset))
-        rows = cursor.fetchall()
-        column_names = [column[0] for column in cursor.description]
-        transformed_rows = [
-            dict(zip(column_names, transform_row(row))) for row in rows]
+    data = json.loads(event['body'])
 
-        response =  create_response(200, '', transformed_rows)
+    required_fields = ['treatment_course_id', 'facility_id', 'staff_id']
+
+    missing_fields = [field for field in required_fields if not data.get(field)]
+
+    if missing_fields:
+        return create_response(400, f"Fields {', '.join(missing_fields)} are required")
+    try:
+        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        cursor = conn.cursor()
+        query = """INSERT INTO `examination` (`diagnosis`, `x-ray-image`, `treatment_course_id`, `facility_id`, `description`, `staff_id`, `x-ray-image-des`, `medicine`)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
+
+        cursor.execute(query, (get_value_or_none(data, 'diagnosis'),
+                               get_value_or_none(data, 'x-ray-image'),
+                               get_value_or_none(data, 'treatment_course_id'),
+                               get_value_or_none(data, 'facility_id'),
+                               get_value_or_none(data, 'description'),
+                               get_value_or_none(data, 'staff_id'),
+                               get_value_or_none(data, 'x-ray-image-des'),
+                               get_value_or_none(data, 'medicine')))
+        
+        cursor.execute("SELECT examination_id FROM examination ORDER BY examination_id DESC LIMIT 1;")
+        row = cursor.fetchone()
+        id = row[0]
+        conn.commit()
+        response = create_response(201, message='Examination created successfully', data= {'examination_id': id})
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

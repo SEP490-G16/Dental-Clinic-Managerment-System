@@ -53,32 +53,25 @@ def lambda_handler(event, context):
     cursor = None
     response = create_response(500, 'Internal error', None)
     if ('pathParameters' not in event or
-            'paging' not in event['pathParameters'] or
-            not event['pathParameters']['paging'] or
+            'id' not in event['pathParameters'] or
+            not event['pathParameters']['id'] or
             event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
-    try:
-        page_number = int(event['pathParameters']['paging'])
-        offset = (page_number - 1) * 10
-    except ValueError:
-        return create_response(400, 'Invalid paging value')
+    
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
                        passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            SELECT * FROM `import_material`
-            WHERE status != 0
-            ORDER BY id DESC
-            LIMIT 11 OFFSET %s;
+            SELECT * FROM `examination`
+            WHERE status != 0 AND treatment_course_id = %s
         """
-        cursor.execute(query, (offset))
+        cursor.execute(query, (event['pathParameters']['id']))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
         transformed_rows = [
             dict(zip(column_names, transform_row(row))) for row in rows]
-
-        response =  create_response(200, '', transformed_rows)
+        response = create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

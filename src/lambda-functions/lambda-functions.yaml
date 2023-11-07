@@ -166,3 +166,17 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+
+  ExaminationFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: examination/examination.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
