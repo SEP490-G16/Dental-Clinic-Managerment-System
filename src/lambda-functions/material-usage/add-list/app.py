@@ -48,37 +48,37 @@ def lambda_handler(event, context):
 
     data = json.loads(event['body'])
 
-    material_ids = {}
-    duplicated_material_ids = []
+    # material_ids = {}
+    # duplicated_material_ids = []
 
-    for item in data:
-        material_id = item.get('material_id')
-        if material_id in material_ids:
-            duplicated_material_ids.append(material_id)
-        material_ids[material_id] = True
+    # for item in data:
+    #     material_id = item.get('material_id')
+    #     if material_id in material_ids:
+    #         duplicated_material_ids.append(material_id)
+    #     material_ids[material_id] = True
 
-    if duplicated_material_ids:
-        return create_response(400, "Material IDs are duplicated in the request.", duplicated_material_ids)
+    # if duplicated_material_ids:
+    #     return create_response(400, "Material IDs are duplicated in the request.", duplicated_material_ids)
 
     # check required
     missing_fields_list = []
 
-    required_fields = ['material_id', 'import_material_id', 'quantity_import', 'price', 'warranty', 'discount']
+    required_fields = ['material_warehouse_id', 'treatment_course_id', 'examination_id', 'quantity', 'price']
 
     for item in data:
         missing_fields = [field for field in required_fields if field not in item]
         if missing_fields:
-            missing_fields_list.append({'material_id': item.get('material_id'), 'missing_fields': missing_fields})
+            missing_fields_list.append({'examination_id': item.get('examination_id'), 'missing_fields': missing_fields})
 
     if missing_fields_list:
-        missing_materials = ', '.join([f"Material ID: {item['material_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
+        missing_materials = ', '.join([f"Examination ID: {item['examination_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
         return create_response(400, f"Missing fields for the following materials: {missing_materials}")
 
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         conn.autocommit(False)
         cursor = conn.cursor()
-        query = """INSERT INTO `material_warehouse` (`material_id`, `import_material_id`, `quantity_import`, `remaining`, `price`, `warranty`, `discount`) VALUES """
+        query = """INSERT INTO `material_usage` (`material_warehouse_id`, `treatment_course_id`, `examination_id`, `quantity`, `price`, `total_paid`, `description`) VALUES """
         query_data = ()
         for item in data:
             query += "(%s, %s, %s, %s, %s, FROM_UNIXTIME(%s), %s),"

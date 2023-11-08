@@ -114,7 +114,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /medical-supply/labo/{id}
+            Path: /medical-supply/labo/{id}/{paging}
             Method: get
       Policies:
         - Version: "2012-10-17"

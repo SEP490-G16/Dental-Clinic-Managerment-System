@@ -56,10 +56,12 @@ def lambda_handler(event, context):
     if ('pathParameters' not in event or
             'id' not in event['pathParameters'] or
             not event['pathParameters']['id'] or
+            'paging' not in event['pathParameters'] or
+            not event['pathParameters']['paging'] or
             event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
     try:
-        page_number = int(event['pathParameters']['id'])
+        page_number = int(event['pathParameters']['paging'])
         offset = (page_number - 1) * 10
     except ValueError:
         return create_response(400, 'Invalid paging value')
@@ -73,7 +75,7 @@ def lambda_handler(event, context):
             ORDER BY medical_supply_id DESC
             LIMIT 11 OFFSET %s;
         """
-        cursor.execute(query, (offset))
+        cursor.execute(query, (event['pathParameters']['id'], offset))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
         transformed_rows = [

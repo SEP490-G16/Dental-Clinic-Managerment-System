@@ -302,3 +302,63 @@ CREATE TABLE `receipt` (
     FOREIGN KEY (invoice_id) REFERENCES invoice(invoice_id),
     FOREIGN KEY (examination_id) REFERENCES examination(examination_id)
 )
+
+BEGIN
+    DECLARE change_quantity INT;
+    DECLARE change_material_warehouse_id VARCHAR(12);
+    DECLARE old_remaining INT;
+    DECLARE new_remaining INT;
+    
+
+    IF NEW.quantity <> OLD.quantity OR NEW.material_warehouse_id <> OLD.material_warehouse_id THEN
+
+        -- SET change_quantity = NEW.quantity - OLD.quantity;
+        SET change_material_warehouse_id = NEW.material_warehouse_id;
+
+        SELECT remaining INTO old_remaining
+        FROM material_warehouse
+        WHERE material_warehouse_id = OLD.material_warehouse_id;
+
+        SELECT remaining INTO new_remaining
+        FROM material_warehouse
+        WHERE material_warehouse_id = NEW.material_warehouse_id
+
+        IF NEW.material_warehouse_id <> OLD.material_warehouse_id THEN
+            IF new_remaining >= NEW.quantity THEN
+                UPDATE material_warehouse
+                SET remaining = old_remaining + OLD.quantity
+                WHERE material_warehouse_id = OLD.material_warehouse_id;
+                
+                UPDATE material_warehouse
+                SET remaining = new_remaining - NEW.quantity
+                WHERE material_warehouse_id = NEW.material_warehouse_id;
+            ELSE
+                SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Insufficient quantity in material warehouse for NEW.material_warehouse_id';
+            END IF;
+        ELSE
+            IF NEW.quantity <= OLD.quantity THEN
+                UPDATE material_warehouse
+                SET remaining = old_remaining + OLD.quantity - NEW.quantity
+                WHERE material_warehouse_id = NEW.material_warehouse_id;
+            ELSE
+                SET change_quantity = NEW.quantity - OLD.quantity
+
+                IF change_quantity > new_remaining THEN
+                    SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'Insufficient quantity in material warehouse for NEW.material_warehouse_id';
+                ELSE
+                    UPDATE material_warehouse
+                    SET remaining = old_remaining - change_quantity
+                    WHERE material_warehouse_id = NEW.material_warehouse_id
+                END IF;
+            END IF;
+        END IF;
+    END IF;
+    
+    IF NEW.total_paid >= NEW.total THEN
+        SET NEW.status = 2;
+    ELSE
+        SET NEW.status = 1;
+    END IF;
+END

@@ -65,8 +65,9 @@ def lambda_handler(event, context):
                        passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            SELECT * FROM `material_warehouse`
-            WHERE status != 0 AND import_material_id = %s
+            SELECT * FROM `material_warehouse`mw
+            LEFT JOIN `material` m ON mw.material_id = m.material_id
+            WHERE mw.status != 0 AND mw.import_material_id = %s
         """
         cursor.execute(query, (event['pathParameters']['import_material_id']))
         rows = cursor.fetchall()
