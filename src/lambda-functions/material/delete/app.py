@@ -59,7 +59,10 @@ def lambda_handler(event, context):
         query = "UPDATE `material` SET `status`=0 WHERE material_id=%s;"
         cursor.execute(query, (id,))
         conn.commit()
-        response = create_response(200, message='Medical deactivated successfully')
+        if cursor.rowcount == 0:
+            response = create_response(404, message='Medical not found or not change')
+        else:
+            response = create_response(200, message='Medical deactivated successfully')
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

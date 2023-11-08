@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Integrated to resource dynamodb."
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  UserPoolArn:
+    Type: String
+  TableName:
+    Type: String
+  Api:
+    Type: String
+  InteCognitoAuthorizer:
+    Type: String
+  ApiRootResourceId:
+    Type: String
+  APIGatewayIntegreatedRoleArn:
+    Type: String
+
+Resources:
+  TimekeepingResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref ApiRootResourceId
+      PathPart: "timekeeping"
+
+  StartTimeResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref TimekeepingResource
+      PathPart: "{start-time}"
+
+  EndTimeResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref TimekeepingResource
+      PathPart: "{end-time}"
+  
+  TimekeepingMethodPost:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref TimekeepingResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref InteCognitoAuthorizer
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+          application/json:
+            "Fn::Sub":
+              - |
+                #set($requestId = $context.requestId)
+
+                {
+                  "TableName":"${TableName}",
+                  "Key": {
+                    "type": {"S":"t"},
+                    "epoch": {"N":"$input.path('$.epoch')"}
+                  },
+                  "UpdateExpression": "SET #subIdField = :newValues",
+                  "ExpressionAttributeNames": {
+                    "#subIdField": {"S": "$input.path('$.sub_id')"}
+                  },
+                  "ExpressionAttributeValues": {
+                    ":newValues": {
+                      "M": {
+                        "staff_name": {"S": "$input.path('$.staff_name')"},
+                        "staff_avt": {"S": "$input.path('$.staff_avt')"},
+                        "clock_in": {"N": "$input.path('$.clock_in')"},
+                        "clock_out": {"N": "$input.path('$.clock_out')"},
+                        "timekeeper_name": {"S": "$input.path('$.timekeeper_name')"},
+                        "timekeeper_avt": {"S": "$input.path('$.timekeeper_avt')"}
+                      }
+                    }
+                  }
+                }
+              - TableName: !Ref TableName
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: "{}"
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "200"
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
