@@ -167,14 +167,14 @@ Resources:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestParameters:
           integration.request.path.start-time: method.request.path.start-time
           integration.request.path.end-time: method.request.path.end-time
         RequestTemplates:
           application/json:
-            "Fn::Sub": '{"TableName": "${TableName}", "Key": {"type": {"S": "t"}, "epoch": {"N": "$util.urlDecode($input.params(''start-time''))"}}, "UpdateExpression": "REMOVE :field_name", "ExpressionAttributeValues": {":field_name": {"S": "$util.urlDecode($input.params(''end-time''))"}}}'
+            "Fn::Sub": '{"TableName": "${TableName}", "Key": {"type": {"S": "t"}, "epoch": {"N": "$util.urlDecode($input.params(''start-time''))"}}, "UpdateExpression": "REMOVE #field_name", "ExpressionAttributeNames": {"#field_name": "$util.urlDecode($input.params(''end-time''))"}}'
         IntegrationResponses:
           - StatusCode: "200"
             ResponseTemplates:
