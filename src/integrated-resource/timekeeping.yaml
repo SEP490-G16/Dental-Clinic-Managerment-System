@@ -122,7 +122,7 @@ Resources:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestParameters:
           integration.request.path.start-time: method.request.path.start-time
