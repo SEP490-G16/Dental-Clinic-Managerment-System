@@ -28,14 +28,14 @@ Resources:
       ParentId: !Ref ApiRootResourceId
       PathPart: "timekeeping"
 
-  StartTimeResource:
+  StartTimeNewResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId: !Ref Api
       ParentId: !Ref TimekeepingResource
       PathPart: "{start-time}"
 
-  EndTimeResource:
+  EndTimeNewResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId: !Ref Api
