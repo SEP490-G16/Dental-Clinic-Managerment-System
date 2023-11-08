@@ -28,18 +28,18 @@ Resources:
       ParentId: !Ref ApiRootResourceId
       PathPart: "timekeeping"
 
-  StartTimeNewResource:
+  StartTimeKeepingResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId: !Ref Api
       ParentId: !Ref TimekeepingResource
       PathPart: "{start-time}"
 
-  EndTimeNewResource:
+  EndTimeKeepingResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId: !Ref Api
-      ParentId: !Ref StartTimeNewResource
+      ParentId: !Ref StartTimeKeepingResource
       PathPart: "{end-time}"
   
   TimekeepingMethodPost:
