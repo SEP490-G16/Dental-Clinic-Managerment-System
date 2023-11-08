@@ -95,7 +95,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  GetMedicalSupplyByLaboIdFunction:
+  GetMedicalSupplyByLaboIdNewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: get-by-laboid
