@@ -63,29 +63,29 @@ def lambda_handler(event, context):
     # check required
     missing_fields_list = []
 
-    required_fields = ['material_warehouse_id', 'treatment_course_id', 'examination_id', 'quantity', 'price']
+    required_fields = ['material_usage_id', 'examination_id', 'total_paid']
 
     for item in data:
         missing_fields = [field for field in required_fields if field not in item]
         if missing_fields:
-            missing_fields_list.append({'examination_id': item.get('examination_id'), 'missing_fields': missing_fields})
+            missing_fields_list.append({'material_usage_id': item.get('material_usage_id'), 'missing_fields': missing_fields})
 
     if missing_fields_list:
-        missing_materials = ', '.join([f"Examination ID: {item['examination_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
+        missing_materials = ', '.join([f"Material usage ID: {item['material_usage_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
         return create_response(400, f"Missing fields for the following materials: {missing_materials}")
 
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         conn.autocommit(False)
         cursor = conn.cursor()
-        query = """INSERT INTO `material_usage` (`material_warehouse_id`, `treatment_course_id`, `examination_id`, `quantity`, `price`, `total_paid`, `description`) VALUES """
+        query = """INSERT INTO `paid_material_usage` (`material_usage_id`, `examination_id`, `total_paid`) VALUES """
         query_data = ()
         for item in data:
-            query += "(%s, %s, %s, %s, %s, %s, %s),"
-            query_data += (get_value_or_none(item, 'material_warehouse_id'), get_value_or_none(item, 'treatment_course_id'), get_value_or_none(item, 'examination_id'), get_value_or_none(item, 'quantity'), get_value_or_none(item, 'price'), get_value_or_none(item, 'total_paid'), get_value_or_none(item, 'description'))
+            query += "(%s, %s, %s),"
+            query_data += (get_value_or_none(item, 'material_usage_id'), get_value_or_none(item, 'examination_id'), get_value_or_none(item, 'total_paid'))
         cursor.execute(query[:-1], query_data)
         conn.commit()
-        response = create_response(201, message='Invoice created successfully')
+        response = create_response(201, message='Receipt created successfully')
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

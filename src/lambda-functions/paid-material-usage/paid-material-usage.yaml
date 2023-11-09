@@ -26,7 +26,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref StageName
-      Name: !Sub "${StageName}-${AppName}-material-usage-api"
+      Name: !Sub "${StageName}-${AppName}-paid-material-usage-api"
       Cors:
         AllowOrigin: "'*'"
         AllowMethods: "'*'"
@@ -37,7 +37,7 @@ Resources:
           MyCognitoAuthorizer:
             UserPoolArn: !Ref UserPoolArn
 
-  AddListMaterialUsageFunction:
+  AddListPaidMaterialUsageFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: add-list
@@ -56,37 +56,8 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /material-usage
+            Path: /paid-material-usage
             Method: post
-      Policies:
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Action:
-                - "rds:*"
-              Resource: "*"
-
-  GetByTreatmentCourseIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: get-by-treatment-course-id
-      Handler: app.lambda_handler
-      Runtime: python3.8
-      Layers:
-        - !Ref PyMySQLLayerArn
-      Environment:
-        Variables:
-          HOST: !Ref DBHost
-          DATABASE: !Ref Database
-          USERNAME: !Ref Username
-          PASSWORD: !Ref Password
-      Events:
-        CreateActivities:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MyApi
-            Path: /material-usage/treatment-course/{id}
-            Method: get
       Policies:
         - Version: "2012-10-17"
           Statement:

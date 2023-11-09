@@ -194,3 +194,17 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+
+  PaidMaterialUsageFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: paid-material-usage/paid-material-usage.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
