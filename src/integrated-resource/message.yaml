@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Integrated to resource dynamodb."
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  UserPoolArn:
+    Type: String
+  TableName:
+    Type: String
+  Api:
+    Type: String
+  InteCognitoAuthorizer:
+    Type: String
+  ApiRootResourceId:
+    Type: String
+  APIGatewayIntegreatedRoleArn:
+    Type: String
+
+Resources:
+  MessageResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref ApiRootResourceId
+      PathPart: "message"
+
+  EpochResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref MessageResource
+      PathPart: "{epoch}"
+
+  MessageMethodGet:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref EpochResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref InteCognitoAuthorizer
+      RequestParameters:
+        method.request.path.epoch: true
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.epoch: method.request.path.epoch
+        RequestTemplates:
+          application/json:
+            "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"m"},":startTime":{"N":"$util.urlDecode($input.params(''epoch'') - 43200)"},":endTime":{"N":"$util.urlDecode($input.params(''epoch''))"}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: |
+                $input.path('$')
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "200"
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
