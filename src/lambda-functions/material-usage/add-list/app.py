@@ -85,7 +85,7 @@ def lambda_handler(event, context):
             query_data += (get_value_or_none(item, 'material_id'), get_value_or_none(item, 'import_material_id'), get_value_or_none(item, 'quantity_import'), get_value_or_none(item, 'quantity_import'), get_value_or_none(item, 'price'), get_value_or_none(item, 'warranty'), get_value_or_none(item, 'discount'))
         cursor.execute(query[:-1], query_data)
         conn.commit()
-        response = create_response(201, message='Material insert successfully into warehouse')
+        response = create_response(201, message='Invoice created successfully')
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

@@ -80,7 +80,8 @@ Resources:
                         "clock_in": {"N": "$input.path('$.clock_in')"},
                         "clock_out": {"N": "$input.path('$.clock_out')"},
                         "timekeeper_name": {"S": "$input.path('$.timekeeper_name')"},
-                        "timekeeper_avt": {"S": "$input.path('$.timekeeper_avt')"}
+                        "timekeeper_avt": {"S": "$input.path('$.timekeeper_avt')"},
+                        "status": {"N": "$input.path('$.status')"}
                       }
                     }
                   }
@@ -134,7 +135,7 @@ Resources:
           - StatusCode: "200"
             ResponseTemplates:
               application/json: |
-                $input.path('$')
+                $input.path('$').Items
           - StatusCode: "400"
             SelectionPattern: '4\d{2}'
             ResponseTemplates:
