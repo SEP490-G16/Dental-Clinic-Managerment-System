@@ -60,7 +60,7 @@ def lambda_handler(event, context):
             event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
 
-    if event['pathParameters']['end-date'] - event['pathParameters']['start-date'] > 2678600:
+    if int(event['pathParameters']['end-date']) - int(event['pathParameters']['start-date']) > 2678600:
         return create_response(400, 'Bad Request')
 
     try:

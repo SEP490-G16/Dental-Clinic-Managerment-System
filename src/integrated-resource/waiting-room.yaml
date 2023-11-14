@@ -88,7 +88,7 @@ Resources:
                   {
                     "type": "$field.type.S",
                     "epoch": "$field.epoch.N",
-                    "produce_id": "$field.produce.S",
+                    "produce_id": "$field.produce_id.S",
                     "produce_name": "$field.produce_name.S",
                     "patient_id": "$field.patient_id.S",
                     "patient_name": "$field.patient_name.S",
