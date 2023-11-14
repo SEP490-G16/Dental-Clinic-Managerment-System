@@ -94,3 +94,32 @@ Resources:
               Action:
                 - "rds:*"
               Resource: "*"
+
+  GetMaterialUsageByDateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-by-date-to-date
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /material-usage/report/{start-date}/{end-date}
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"

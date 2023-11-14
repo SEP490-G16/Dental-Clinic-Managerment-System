@@ -91,7 +91,7 @@ Resources:
                     "produce_id": "$field.produce.S",
                     "produce_name": "$field.produce_name.S",
                     "patient_id": "$field.patient_id.S",
-                    "patient_name": "$field.patient_id.S",
+                    "patient_name": "$field.patient_name.S",
                     "reason": "$field.reason.S",
                     "status": "$field.status_value.N"
                   }
@@ -145,7 +145,7 @@ Resources:
                       "type": {"S": "w"},
                       "epoch": {"N": "$input.params('epoch')"}
                   },
-                  "UpdateExpression": "SET produce_id = :produce_id, patient_id = :patient_id, patient_name = :patient_name, reason = :reason, status_value = :status",
+                  "UpdateExpression": "SET produce_id = :produce_id, produce_name = :produce_name, patient_id = :patient_id, patient_name = :patient_name, reason = :reason, status_value = :status",
                   "ExpressionAttributeValues": {
                     ":produce_id": {"S": "$input.path('$.produce_id')"},
                     ":produce_name": {"S": "$input.path('$.produce_name')"},
