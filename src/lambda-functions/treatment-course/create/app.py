@@ -72,6 +72,9 @@ def lambda_handler(event, context):
                                get_value_or_none(data, 'description'),
                                data.get('name')))
 
+        cursor.execute("SELECT treatment_course_id FROM treatment_course ORDER BY treatment_course_id DESC LIMIT 1;")
+        row = cursor.fetchone()
+        id = row[0]
         conn.commit()
 
         return {
@@ -82,7 +85,7 @@ def lambda_handler(event, context):
                 "Access-Control-Allow-Credentials": "true",
                 "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
             },
-            'body': json.dumps({'message': 'Treatment course created successfully'})
+            'body': json.dumps({'message': 'Treatment course created successfully', 'treatment_course_id': id})
         }
     except pymysql.MySQLError as e:
         print("MySQL error:", e)

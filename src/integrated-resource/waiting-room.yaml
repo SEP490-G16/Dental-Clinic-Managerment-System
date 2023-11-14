@@ -76,6 +76,11 @@ Resources:
               - TableName: !Ref TableName
         IntegrationResponses:
           - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'GET'"
             ResponseTemplates:
               application/json: |
                 #set($inputRoot = $input.path('$'))
@@ -102,6 +107,11 @@ Resources:
               application/json: '{"error":"Internal server error"}'
       MethodResponses:
         - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
         - StatusCode: "400"
           ResponseModels:
             application/json: "Error"
@@ -148,6 +158,11 @@ Resources:
               - TableName: !Ref TableName
         IntegrationResponses:
           - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'PUT'"
             ResponseTemplates:
               application/json: '{"message": "Update successful"}'
           - StatusCode: "400"
@@ -160,6 +175,11 @@ Resources:
               application/json: '{"error":"Internal server error"}'
       MethodResponses:
         - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
         - StatusCode: "400"
           ResponseModels:
             application/json: "Error"
@@ -201,6 +221,11 @@ Resources:
               - TableName: !Ref TableName
         IntegrationResponses:
           - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'POST'"
             ResponseTemplates:
               application/json: "{}"
           - StatusCode: "400"
@@ -213,6 +238,11 @@ Resources:
               application/json: '{"error":"Internal server error"}'
       MethodResponses:
         - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
         - StatusCode: "400"
           ResponseModels:
             application/json: "Error"
@@ -250,6 +280,11 @@ Resources:
               - TableName: !Ref TableName
         IntegrationResponses:
           - StatusCode: "204"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE'"
             ResponseTemplates:
               application/json: ""
           - StatusCode: "400"
@@ -262,6 +297,11 @@ Resources:
               application/json: '{"error":"Internal server error"}'
       MethodResponses:
         - StatusCode: "204"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
         - StatusCode: "400"
           ResponseModels:
             application/json: "Error"
