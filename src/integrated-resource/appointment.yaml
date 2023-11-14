@@ -61,7 +61,6 @@ Resources:
             "Fn::Sub":
               - |
                 #set($requestId = $context.requestId)
-
                 {
                   "TableName":"${TableName}",
                   "Key": {
@@ -78,7 +77,8 @@ Resources:
                         "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
                         "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
                         "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
-                        "procedure": {"N": "$input.path('$.appointment.procedure')"},
+                        "procedure_id": {"S": "$input.path('$.appointment.procedure_id')"},
+                        "procedure_name": {"S": "$input.path('$.appointment.procedure_name')"},
                         "doctor": {"S": "$input.path('$.appointment.doctor')"},
                         "time": {"N": "$input.path('$.appointment.time')"},
                         "migrated": {"BOOL": false}
@@ -89,6 +89,11 @@ Resources:
               - TableName: !Ref TableName
         IntegrationResponses:
           - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST,PUT,PATCH,GET,DELETE'"
             ResponseTemplates:
               application/json: "{}"
           - StatusCode: "400"
@@ -101,6 +106,11 @@ Resources:
               application/json: '{"error":"Internal server error"}'
       MethodResponses:
         - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
         - StatusCode: "400"
           ResponseModels:
             application/json: "Error"
@@ -199,7 +209,8 @@ Resources:
                               "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
                               "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
                               "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
-                              "procedure": {"N": "$input.path('$.appointment.procedure')"},
+                              "procedure_id": {"S": "$input.path('$.appointment.procedure_id')"},
+                              "procedure_name": {"S": "$input.path('$.appointment.procedure_name')"},
                               "doctor": {"S": "$input.path('$.appointment.doctor')"},
                               "time": {"N": "$input.path('$.appointment.time')"},
                               "migrated": {"BOOL": false}
@@ -230,7 +241,8 @@ Resources:
                               "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
                               "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
                               "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
-                              "procedure": {"N": "$input.path('$.appointment.procedure')"},
+                              "procedure_id": {"S": "$input.path('$.appointment.procedure_id')"},
+                              "procedure_name": {"S": "$input.path('$.appointment.procedure_name')"},
                               "doctor": {"S": "$input.path('$.appointment.doctor')"},
                               "time": {"N": "$input.path('$.appointment.time')"},
                               "migrated": {"BOOL": false}

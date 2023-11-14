@@ -2,9 +2,19 @@ import json
 import pymysql
 import os
 import datetime
+import decimal
 
-def get_value_or_none(data, key):
-    return data[key] if key in data else None
+def transform_row(row):
+    transformed_row = []
+    for value in row:
+        if isinstance(value, datetime.date):
+            transformed_row.append(str(value))
+        elif isinstance(value, decimal.Decimal):
+            transformed_row.append(float(value))
+        else:
+            transformed_row.append(value)
+    return tuple(transformed_row)
+
 
 def get_mysql_error_message(error_code):
     error_messages = {
@@ -39,30 +49,31 @@ def create_response(status_code, message, data=None, exception_type=None):
         'body': json.dumps(response_body, ensure_ascii=False)
     }
 
+
 def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    
-    if event['httpMethod'] != 'DELETE' or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+    if ('pathParameters' not in event or
+            'id' not in event['pathParameters'] or
+            not event['pathParameters']['id'] or
+            event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
-
+    
     try:
-        id = event['pathParameters']['id']
-        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
+                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            UPDATE `examination` 
-            SET `status` = 0
-            WHERE examination_id=%s;
-            """
-        cursor.execute(query, (id))
-
-        conn.commit()
-        if cursor.rowcount == 0:
-            response =  create_response(status_code=404, message='Examination not change or not found')
-        else:
-            response = create_response(status_code=200, message='Examination deactivated successfully') 
+            SELECT * FROM `paid_material_usage`
+            WHERE status != 0 AND examination_id = %s
+        """
+        cursor.execute(query, (event['pathParameters']['id']))
+        rows = cursor.fetchall()
+        column_names = [column[0] for column in cursor.description]
+        transformed_rows = [
+            dict(zip(column_names, transform_row(row))) for row in rows]
+        response = create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
