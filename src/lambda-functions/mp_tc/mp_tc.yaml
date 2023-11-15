@@ -124,7 +124,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  DeleteMPTCFunction:
+  DeleteMPTCNewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: delete
@@ -144,7 +144,7 @@ Resources:
           Properties:
             RestApiId: !Ref MyApi
             Path: /mp-tc/{treatment-course-id}/{medical-procedure-id}
-            Method: update
+            Method: delete
       Policies:
         - Version: "2012-10-17"
           Statement:
