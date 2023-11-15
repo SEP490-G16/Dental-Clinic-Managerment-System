@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: "AWS::Serverless-2016-10-31"
-Description: "Nested stack for all lambda functions"
+Description: "Patient functions stack."
 
 Parameters:
   StageName:
@@ -37,7 +37,7 @@ Resources:
           MyCognitoAuthorizer:
             UserPoolArn: !Ref UserPoolArn
 
-  CreateMPTCFunction:
+  CreateMPTCnewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: create
@@ -66,7 +66,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  GetMPTCByTCIdFunction:
+  GetMPTCByTCIdnewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: get-by-treatment-course-id
@@ -95,7 +95,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  UpdateMPTCFunction:
+  UpdateMPTCnewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: update
@@ -124,7 +124,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  DeleteMPTCFunction:
+  DeleteMPTCnewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: delete
