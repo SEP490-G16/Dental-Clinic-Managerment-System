@@ -209,7 +209,7 @@ Resources:
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
 
-  MPTCFunctionsStack:
+  MpTcFunctionsStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: mp_tc/mp_tc.yaml
