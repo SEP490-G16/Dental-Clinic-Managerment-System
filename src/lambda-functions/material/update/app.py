@@ -62,11 +62,12 @@ def lambda_handler(event, context):
         cursor = conn.cursor()
         query = """
             UPDATE `material` 
-            SET `material_name` = %s, `unit` = %s
+            SET `material_name` = %s, `unit` = %s, `total` = %s
             WHERE material_id=%s;
             """
         cursor.execute(query, ( data.get('material_name'),
                                 data.get('unit'),
+                                get_value_or_none('total'),
                                 id))
 
         conn.commit()

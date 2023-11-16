@@ -56,11 +56,12 @@ def lambda_handler(event, context):
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
-        query = """INSERT INTO `material` (`material_name`, `unit`)
-                VALUES (%s, %s);"""
+        query = """INSERT INTO `material` (`material_name`, `unit`, `total`)
+                VALUES (%s, %s, %s);"""
 
         cursor.execute(query, ( data.get('material_name'),
-                                data.get('unit')))
+                                data.get('unit'),
+                                get_value_or_none('total')))
         
         cursor.execute("SELECT material_id FROM material ORDER BY material_id DESC LIMIT 1;")
         row = cursor.fetchone()
