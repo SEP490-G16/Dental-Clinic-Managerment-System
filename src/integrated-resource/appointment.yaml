@@ -321,6 +321,73 @@ Resources:
           ResponseModels:
             application/json: "Error"
 
+  AppointmentMethodDelete:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref AppointmentResource
+      HttpMethod: DELETE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref InteCognitoAuthorizer
+      RequestParameters:
+        method.request.path.start-time: true
+        method.request.path.end-time: true
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.start-time: method.request.path.start-time
+          integration.request.path.end-time: method.request.path.end-time
+        RequestTemplates:
+          application/json:
+            "Fn::Sub":
+              - |
+                {
+                  "TableName":"${TableName}",
+                  "Key": {
+                    "type": {"S":"a"},
+                    "epoch": {"N":"$util.urlDecode($input.params('start-time'))"}
+                  },
+                  "UpdateExpression": "REMOVE #field_name",
+                  "ExpressionAttributeNames": {
+                    "#field_name": "$util.urlDecode($input.params('end-time'))"
+                  }
+                }
+              - TableName: !Ref TableName
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'POST'"
+            ResponseTemplates:
+              application/json: "{}"
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
+
   # WaittingRoomMethodGet:
   #   Type: "AWS::ApiGateway::Method"
   #   Properties:
