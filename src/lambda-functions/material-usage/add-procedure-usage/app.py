@@ -43,44 +43,35 @@ def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    
-    if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+    if event['httpMethod'] != 'POST' or not event.get('body'):
         return create_response(400, 'Bad Request')
+    data = json.loads(event['body'])
 
+    required_fields = ['medical_procedure_id', 'treatment_course_id', 'examination_id', 'quantity', 'price']
+
+    missing_fields = [field for field in required_fields if not data.get(field)]
+
+    if missing_fields:
+        return create_response(400, f"Fields {', '.join(missing_fields)} are required")
     try:
-        id = event['pathParameters']['id']
-        data = json.loads(event['body'])
-
-        if (data.get('medical_procedure_id') is None and data.get('material_warehouse_id') is None) or (data.get('medical_procedure_id') is not None and data.get('material_warehouse_id') is not None):
-            return create_response(400, 'Must has one of material_warehouse_id or medical_procedure_id')
-        required_fields = ['treatment_course_id', 'examination_id', 'quantity', 'price']
-
-        missing_fields = [
-            field for field in required_fields if not data.get(field)]
-
-        if missing_fields:
-            return create_response(400, f"Fields {', '.join(missing_fields)} are required")
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
-        query = """
-            UPDATE `material_usage` 
-            SET `material_warehouse_id` = %s, `medical_procedure_id` = %s, `treatment_course_id` = %s, `examination_id` = %s, `quantity` = %s, `price` = %s, `description` = %s
-            WHERE material_usage_id=%s;
-            """
-        cursor.execute(query, (get_value_or_none(data, 'material_warehouse_id'),
-                               get_value_or_none(data, 'medical_procedure_id'), 
-                               get_value_or_none(data, 'treatment_course_id'), 
-                               get_value_or_none(data, 'examination_id'), 
-                               get_value_or_none(data, 'quantity'), 
-                               get_value_or_none(data, 'price'),
-                               get_value_or_none(data, 'description'),
-                               id))
+        query = """INSERT INTO `material_usage` (`medical_procedure_id`, `treatment_course_id`, `examination_id`, `quantity`, `price`, `total_paid`, `description`)
+                VALUES (%s, %s, %s, %s, %s, %s, %s);"""
 
+        cursor.execute(query, ( get_value_or_none(data, 'medical_procedure_id'),
+                                get_value_or_none(data, 'treatment_course_id'),
+                                get_value_or_none(data, 'examination_id'),
+                                get_value_or_none(data, 'quantity'),
+                                get_value_or_none(data, 'price'),
+                                get_value_or_none(data, 'total_paid'),
+                                get_value_or_none(data, 'description')))
+        
+        cursor.execute("SELECT material_usage_id FROM material_usage ORDER BY material_usage_id DESC LIMIT 1;")
+        row = cursor.fetchone()
+        id = row[0]
         conn.commit()
-        if cursor.rowcount == 0:
-            response =  create_response(status_code=404, message='Material usage not found or not change')
-        else:
-            response = create_response(status_code=200, message='Material usage updated successfully') 
+        response = create_response(201, message='Material usage created successfully', data= {'material_usage_id': id})
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

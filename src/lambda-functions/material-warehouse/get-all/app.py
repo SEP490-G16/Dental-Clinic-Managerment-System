@@ -70,11 +70,33 @@ def lambda_handler(event, context):
                        passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-          SELECT * FROM `material_warehouse` mw
-          LEFT JOIN `material` m on mw.material_id = m.material_id
-          WHERE mw.status != 0
-          ORDER BY mw.remaining DESC
-          LIMIT 11 OFFSET %s
+            SELECT 
+                mw.material_warehouse_id AS mw_material_warehouse_id,
+                mw.import_material_id AS mw_import_material_id,
+                mw.quantity_import AS mw_quantity_import,
+                mw.remaining AS mw_remaining,
+                mw.price AS mw_price,
+                mw.warranty AS mw_warranty,
+                mw.discount AS mw_discount,
+                m.material_id AS m_material_id,
+                m.material_name AS m_material_name,
+                m.unit AS m_unit
+            FROM 
+                material_warehouse mw
+                INNER JOIN (
+                    SELECT 
+                    	material_id
+                    FROM 
+                    	material_warehouse
+                    GROUP BY 
+                    	material_id
+                    ORDER BY 
+                    	material_id
+                    LIMIT 11 OFFSET %s
+                ) as subquery
+                ON mw.`material_id` = subquery.`material_id`
+            LEFT JOIN `material` m on mw.material_id = m.material_id
+            WHERE mw.status != 0 AND mw.remaining > 0 AND m.status = 1
         """
         cursor.execute(query, (offset))
         rows = cursor.fetchall()

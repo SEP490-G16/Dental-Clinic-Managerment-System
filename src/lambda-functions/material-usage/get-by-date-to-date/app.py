@@ -71,6 +71,7 @@ def lambda_handler(event, context):
           SELECT 
               mu.material_usage_id AS mu_material_usage_id,
               mu.material_warehouse_id AS mu_material_warehouse_id,
+              mu.medical_procedure_id AS mu_medical_procedure_id,
               mu.examination_id AS mu_examination_id,
               mu.quantity AS mu_quantity,
               mu.price AS mu_price,
