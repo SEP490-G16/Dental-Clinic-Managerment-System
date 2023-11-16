@@ -321,11 +321,11 @@ Resources:
           ResponseModels:
             application/json: "Error"
 
-  AppointmentMethodDelete:
+  AppointmentMethodDeleteNew:
     Type: "AWS::ApiGateway::Method"
     Properties:
       RestApiId: !Ref Api
-      ResourceId: !Ref AppointmentResource
+      ResourceId: !Ref EndTimeResource
       HttpMethod: DELETE
       AuthorizationType: COGNITO_USER_POOLS
       AuthorizerId: !Ref InteCognitoAuthorizer
