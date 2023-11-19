@@ -39,7 +39,7 @@ Resources:
           MyCognitoAuthorizer:
             UserPoolArn: !Ref UserPoolArn
 
-  GetListUsersFunction:
+  GetListUsersNewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: list-users
