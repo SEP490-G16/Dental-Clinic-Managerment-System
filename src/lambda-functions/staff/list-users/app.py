@@ -1,9 +1,15 @@
 import json
 import boto3
 import os
+from datetime import datetime
 from botocore.exceptions import ClientError
 
 cognito_client = boto3.client('cognito-idp')
+
+
+def serialize_date(o):
+    if isinstance(o, datetime):
+        return o.isoformat()
 
 
 def create_response(status_code, message, data=None, exception_type=None):
@@ -24,7 +30,7 @@ def create_response(status_code, message, data=None, exception_type=None):
             "Access-Control-Allow-Credentials": "true",
             "Access-Control-Allow-Methods": "POST, PUT, PATCH, GET, DELETE, OPTIONS"
         },
-        'body': json.dumps(response_body, ensure_ascii=False)
+        'body': json.dumps(response_body, default=serialize_date, ensure_ascii=False)
     }
 
 
