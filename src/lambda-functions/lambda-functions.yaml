@@ -9,6 +9,8 @@ Parameters:
     Type: String
   UserPoolArn:
     Type: String
+  UserPoolId:
+    Type: String
   DBHost:
     Type: String
     Description: "Database host address"
@@ -217,6 +219,21 @@ Resources:
         StageName: !Ref StageName
         AppName: !Ref AppName
         UserPoolArn: !Ref UserPoolArn
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
+
+  StaffFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: staff/staff.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        UserPoolId: !Ref UserPoolId
         DBHost: !Ref DBHost
         Database: !Ref Database
         Username: !Ref Username

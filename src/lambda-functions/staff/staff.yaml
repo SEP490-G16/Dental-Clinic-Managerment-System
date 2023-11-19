@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Patient functions stack."
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  UserPoolArn:
+    Type: String
+  UserPoolId:
+    Type: String
+  DBHost:
+    Type: String
+  Database:
+    Type: String
+  Username:
+    Type: String
+  Password:
+    Type: String
+  PyMySQLLayerArn:
+    Description: ARN of the Lambda layer to associate with our function
+    Type: String
+
+Resources:
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Name: !Sub "${StageName}-${AppName}-staff-api"
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !Ref UserPoolArn
+
+  GetListUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: list-users
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          USER_POOL_ID:
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /staff
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
