@@ -225,7 +225,7 @@ Resources:
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
 
-  StaffFunctionsStack:
+  StaffFunctionsWithCognitoStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: staff/staff.yaml
