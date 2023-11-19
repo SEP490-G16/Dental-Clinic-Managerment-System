@@ -59,7 +59,7 @@ Resources:
         StageName: !Ref StageName
         AppName: !Sub ${AppName}
         UserPoolArn: !GetAtt InfrastructureStack.Outputs.CognitoUserPoolArn
-        UserPoolId: !GetAtt InfrastructureStack.Outputs.UserPoolId
+        UserPoolId: !GetAtt InfrastructureStack.Outputs.CognitoUserPoolId
         DBHost: !Ref DBHost
         Database: !Ref Database
         Username: !Ref DBUsername
