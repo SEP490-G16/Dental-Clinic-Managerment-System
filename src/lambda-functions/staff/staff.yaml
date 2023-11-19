@@ -45,11 +45,9 @@ Resources:
       CodeUri: list-users
       Handler: app.lambda_handler
       Runtime: python3.8
-      Layers:
-        - !Ref PyMySQLLayerArn
       Environment:
         Variables:
-          USER_POOL_ID: !Ref UserPoolId
+          USERPOOLID: !Ref UserPoolId
       Events:
         CreateActivities:
           Type: Api

@@ -30,7 +30,7 @@ def create_response(status_code, message, data=None, exception_type=None):
 
 def lambda_handler(event, context):
 
-    user_pool_id = os.environ.get('USER_POOL_ID')
+    user_pool_id = os.environ.get('USERPOOLID')
 
     try:
         response = cognito_client.list_users(UserPoolId=user_pool_id)
