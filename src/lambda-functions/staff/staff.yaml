@@ -49,7 +49,7 @@ Resources:
         - !Ref PyMySQLLayerArn
       Environment:
         Variables:
-          USER_POOL_ID:
+          USER_POOL_ID: !Ref UserPoolId
       Events:
         CreateActivities:
           Type: Api
