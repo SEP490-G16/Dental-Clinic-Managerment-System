@@ -105,3 +105,17 @@ Resources:
         InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
         ApiRootResourceId: !GetAtt Api.RootResourceId
         APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn
+
+  ExpensesStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./expenses.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        TableName: !Ref TableName
+        Api: !Ref Api
+        InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        ApiRootResourceId: !GetAtt Api.RootResourceId
+        APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn
