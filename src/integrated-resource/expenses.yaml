@@ -241,7 +241,7 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestParameters:
-          integration.request.path.start-time: method.request.path.start-time
+          integration.request.path.epoch: method.request.path.epoch
           integration.request.path.end-time: method.request.path.end-time
         RequestTemplates:
           application/json:
