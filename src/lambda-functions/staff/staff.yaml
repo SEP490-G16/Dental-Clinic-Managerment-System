@@ -63,3 +63,53 @@ Resources:
               Action:
                 - "rds:*"
               Resource: "*"
+
+  PutUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: admin-update-user-attributes
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPoolId
+          USERPOOLID: !Ref UserPoolId
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /staff
+            Method: put
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
+  DeleteUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: admin-delete-user
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPoolId
+          USERPOOLID: !Ref UserPoolId
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /staff
+            Method: delete
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
