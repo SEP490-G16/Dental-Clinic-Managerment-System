@@ -89,7 +89,7 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
-  DeleteUsersFunction:
+  DeleteUsersNewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: admin-delete-user
@@ -104,7 +104,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /staff
+            Path: /staff/{username}
             Method: delete
       Policies:
         - Version: "2012-10-17"

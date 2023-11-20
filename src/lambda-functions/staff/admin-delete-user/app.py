@@ -34,8 +34,7 @@ def lambda_handler(event, context):
     client = boto3.client('cognito-idp')
 
     # Giả sử bạn nhận username qua event, ví dụ từ API Gateway
-    input_data = json.loads(event['body'])
-    username = input_data['username']
+    username = event['pathParameters']['username']
     user_pool_id = os.environ.get('USERPOOLID')
 
     # Xóa người dùng
