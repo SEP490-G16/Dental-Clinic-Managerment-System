@@ -483,12 +483,3 @@ Resources:
   #     ParentId: !Ref MusicResource
   #     PathPart: "{artist}"
 
-  ApiDeployment:
-    Type: "AWS::ApiGateway::Deployment"
-    DependsOn:
-      - AppointmentMethodPost
-      - AppointmentMethodPut
-      - AppointmentMethodGet
-    Properties:
-      RestApiId: !Ref Api
-      StageName: !Sub "${StageName}"
