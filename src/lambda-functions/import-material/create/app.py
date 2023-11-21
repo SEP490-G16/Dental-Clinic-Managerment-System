@@ -47,7 +47,7 @@ def lambda_handler(event, context):
         return create_response(400, 'Bad Request')
     data = json.loads(event['body'])
 
-    required_fields = ['creator']
+    required_fields = ['creator', 'facility_id']
 
     missing_fields = [field for field in required_fields if not data.get(field)]
 
@@ -56,11 +56,12 @@ def lambda_handler(event, context):
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
-        query = """INSERT INTO `import_material` (`creator`, `description`)
-                VALUES (%s, %s);"""
+        query = """INSERT INTO `import_material` (`creator`, `description`, `facility_id`)
+                VALUES (%s, %s, %s);"""
 
         cursor.execute(query, ( data.get('creator'),
-                                get_value_or_none(data, 'description')))
+                                get_value_or_none(data, 'description'),
+                                get_value_or_none('facility_id')))
         
         cursor.execute("SELECT id FROM import_material ORDER BY id DESC LIMIT 1;")
         row = cursor.fetchone()

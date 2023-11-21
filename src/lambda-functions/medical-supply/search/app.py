@@ -3,7 +3,6 @@ import pymysql
 import os
 import datetime
 
-
 def transform_row(row):
     transformed_row = []
     for value in row:
@@ -52,12 +51,13 @@ def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-    if ('pathParameters' not in event or
-            event['httpMethod'] != 'GET'):
+    if (event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
     
     try:
         query_params = event.get('queryStringParameters', {})
+        if query_params['paging'] == '':
+            return create_response(400, 'Fields paging are required')
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
                        passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
@@ -66,40 +66,47 @@ def lambda_handler(event, context):
             SELECT * FROM `medical_supply`
         """
         query_data = ()
-        if int(query_params.get('status')) == 1 or 2:
-            query += """ 
-                WHERE status = %s
-            """
-            query_data += (query_params.get('status'))
+        status = query_params.get('status')
+        if status and status.isdigit():
+            status = int(status)
+            if status in [1, 2, 3]:
+                query += " WHERE status = %s"
+                query_data += (status,)
+            else:
+                query += " WHERE status != 0"
         else:
-            query += """ 
-                WHERE status != 0
+            query += " WHERE status != 0"
+
+        if query_params['labo_id'] != '':
+            query += """
+              AND `labo_id` = %s
             """
-        
-        if query_params.get('order_date_start') != '' and query_params.get('order_date_end') != '':
+            query_data += (query_params['labo_id'],)
+
+        if query_params['order_date_start'] != '' and query_params['order_date_end'] != '':
             query += """
               AND `order_date` BETWEEN FROM_UNIXTIME(%s) AND FROM_UNIXTIME(%s)
             """
-            query_data += (query_params.get('order_date_start'), query_params.get('order_date_end'))
+            query_data += (query_params['order_date_start'], query_params['order_date_end'])
 
-        if query_params.get('received_date_start') != '' and query_params.get('received_date_end') != '':
+        if query_params['received_date_start'] != '' and query_params['received_date_end'] != '':
             query += """
               AND `received_date` BETWEEN FROM_UNIXTIME(%s) AND FROM_UNIXTIME(%s)
             """
-            query_data += (query_params.get('received_date_start'), query_params.get('received_date_end'))
+            query_data += (query_params['received_date_start'], query_params['received_date_end'])
 
-        if query_params.get('used_date_start') != '' and query_params.get('used_date_end') != '':
+        if query_params['used_date_start'] != '' and query_params['used_date_end'] != '':
             query += """
               AND `used_date` BETWEEN FROM_UNIXTIME(%s) AND FROM_UNIXTIME(%s)
             """
-            query_data += (query_params.get('used_date_start'), query_params.get('used_date_end'))
+            query_data += (query_params['used_date_start'], query_params['used_date_end'])
 
         query += """
             ORDER BY `order_date` DESC
             LIMIT 11 OFFSET %s
         """
-        offset = (query_params.get('paging') - 1) * 10
-        query_data += (offset)
+        offset = (int(query_params['paging']) - 1) * 10
+        query_data += (offset,)
         cursor.execute(query, query_data)
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]

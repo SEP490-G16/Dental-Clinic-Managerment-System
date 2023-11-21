@@ -51,7 +51,7 @@ def lambda_handler(event, context):
         id = event['pathParameters']['id']
         data = json.loads(event['body'])
 
-        required_fields = ['creator', 'created_date']
+        required_fields = ['creator', 'created_date', 'facility_id']
 
         missing_fields = [
             field for field in required_fields if not data.get(field)]
@@ -62,12 +62,13 @@ def lambda_handler(event, context):
         cursor = conn.cursor()
         query = """
             UPDATE `import_material` 
-            SET `creator` = %s, `description` = %s, `created_date` = FROM_UNIXTIME(%s)
+            SET `creator` = %s, `description` = %s, `created_date` = FROM_UNIXTIME(%s), `facility_id` = %s
             WHERE id=%s;
             """
         cursor.execute(query, ( data.get('creator'),
                                 get_value_or_none(data, 'description'),
                                 data.get('created_date'),
+                                get_value_or_none('facility_id'),
                                 id))
 
         conn.commit()

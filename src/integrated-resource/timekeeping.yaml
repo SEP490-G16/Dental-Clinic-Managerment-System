@@ -77,6 +77,7 @@ Resources:
                       "M": {
                         "staff_name": {"S": "$input.path('$.staff_name')"},
                         "staff_avt": {"S": "$input.path('$.staff_avt')"},
+                        "role": {"S": "$input.path('$.role')"},
                         "clock_in": {"N": "$input.path('$.clock_in')"},
                         "clock_out": {"N": "$input.path('$.clock_out')"},
                         "timekeeper_name": {"S": "$input.path('$.timekeeper_name')"},
