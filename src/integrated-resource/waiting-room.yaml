@@ -308,12 +308,3 @@ Resources:
         - StatusCode: "500"
           ResponseModels:
             application/json: "Error"
-
-  ApiDeployment:
-    Type: "AWS::ApiGateway::Deployment"
-    DependsOn:
-      - WaitingRoomMethodGet
-      - WaitingRoomMethodPut
-    Properties:
-      RestApiId: !Ref Api
-      StageName: !Sub "${StageName}"
