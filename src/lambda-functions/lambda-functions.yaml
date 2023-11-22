@@ -31,6 +31,7 @@ Parameters:
 Resources:
   PatientFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: patient/patient.yaml
       Parameters:
@@ -42,6 +43,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   MedicalProcedureGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -239,3 +241,12 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+
+  AuthFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: auth/auth.yaml
+
+Outputs:
+  LambdaAuthorizerFunctionArn:
+    Value: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn

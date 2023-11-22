@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lambda-token-authorizer
+
+  Sample SAM Template for lambda-token-authorizer
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  LambdaAuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./authorizer
+      Handler: app.handler
+      Runtime: python3.8
+
+Outputs:
+  LambdaAuthorizerFunctionArn:
+    Description: "Lambda Authorizer Function Arn"
+    Value: !GetAtt LambdaAuthorizerFunction.Arn

@@ -78,6 +78,8 @@ Resources:
                         "staff_name": {"S": "$input.path('$.staff_name')"},
                         "staff_avt": {"S": "$input.path('$.staff_avt')"},
                         "role": {"S": "$input.path('$.role')"},
+                        "register_clock_in": {"N": "$input.path('$.register_clock_in')"},
+                        "register_clock_out": {"N": "$input.path('$.register_clock_out')"},
                         "clock_in": {"N": "$input.path('$.clock_in')"},
                         "clock_out": {"N": "$input.path('$.clock_out')"},
                         "timekeeper_name": {"S": "$input.path('$.timekeeper_name')"},

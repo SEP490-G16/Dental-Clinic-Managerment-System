@@ -168,7 +168,7 @@ jobs:
           path: packaged-prod.yaml
 
   deploy-dev:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'  && startsWith(github.event.head_commit.message, 'dev')
     needs: [build-and-package]
     runs-on: ubuntu-latest
     steps:
@@ -204,7 +204,7 @@ jobs:
 
   integration-test:
     if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'prod')
-    needs: [deploy-dev]
+    needs: [build-and-package]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
