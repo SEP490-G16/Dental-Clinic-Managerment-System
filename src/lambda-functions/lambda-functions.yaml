@@ -47,6 +47,7 @@ Resources:
 
   MedicalProcedureGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: medical-procedure-group/medical-procedure-group.yaml
       Parameters:
@@ -62,6 +63,7 @@ Resources:
 
   MedicalProcedureFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: medical-procedure/medical-procedure.yaml
       Parameters:
@@ -77,6 +79,7 @@ Resources:
 
   TreatmentCourseGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: treatment-course/treatment-course.yaml
       Parameters:
@@ -92,6 +95,7 @@ Resources:
 
   FacilityGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: facility/facility.yaml
       Parameters:
@@ -107,6 +111,7 @@ Resources:
 
   LaboFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: labo/labo.yaml
       Parameters:
@@ -122,6 +127,7 @@ Resources:
 
   MedicalSupplyFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: medical-supply/medical-supply.yaml
       Parameters:
@@ -137,6 +143,7 @@ Resources:
 
   MaterialFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: material/material.yaml
       Parameters:
@@ -152,6 +159,7 @@ Resources:
 
   ImportMaterialFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: import-material/import-material.yaml
       Parameters:
@@ -167,6 +175,7 @@ Resources:
 
   MaterialWarehouseFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: material-warehouse/material-warehouse.yaml
       Parameters:
@@ -182,6 +191,7 @@ Resources:
 
   ExaminationFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: examination/examination.yaml
       Parameters:
@@ -197,6 +207,7 @@ Resources:
 
   MaterialUsageFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: material-usage/material-usage.yaml
       Parameters:
@@ -212,6 +223,7 @@ Resources:
 
   PaidMaterialUsageFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: paid-material-usage/paid-material-usage.yaml
       Parameters:
@@ -227,6 +239,7 @@ Resources:
 
   MpTcFunctionsStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: mp_tc/mp_tc.yaml
       Parameters:
@@ -242,6 +255,7 @@ Resources:
 
   StaffFunctionsWithCognitoStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
     Properties:
       TemplateURL: staff/staff.yaml
       Parameters:
