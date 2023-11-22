@@ -13,7 +13,9 @@ Parameters:
     Type: String
   Api:
     Type: String
-  InteCognitoAuthorizer:
+  # InteCognitoAuthorizer:
+  #   Type: String
+  LambdaAuthorizer:
     Type: String
   ApiRootResourceId:
     Type: String
@@ -41,8 +43,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref EpochResource
       HttpMethod: GET
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       RequestParameters:
         method.request.path.epoch: true
       Integration:

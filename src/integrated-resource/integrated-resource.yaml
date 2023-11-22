@@ -20,15 +20,15 @@ Resources:
     Properties:
       Name: !Sub "${StageName}-${AppName}-integrated-resource-api"
 
-  InteCognitoAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      Name: InteCognitoAuthorizer
-      Type: COGNITO_USER_POOLS
-      RestApiId: !Ref Api
-      IdentitySource: method.request.header.Authorization
-      ProviderARNs:
-        - !Ref UserPoolArn
+  # InteCognitoAuthorizer:
+  #   Type: AWS::ApiGateway::Authorizer
+  #   Properties:
+  #     Name: InteCognitoAuthorizer
+  #     Type: COGNITO_USER_POOLS
+  #     RestApiId: !Ref Api
+  #     IdentitySource: method.request.header.Authorization
+  #     ProviderARNs:
+  #       - !Ref UserPoolArn
 
   LambdaAuthorizer:
     Type: AWS::ApiGateway::Authorizer
@@ -72,7 +72,7 @@ Resources:
         UserPoolArn: !Ref UserPoolArn
         TableName: !Ref TableName
         Api: !Ref Api
-        InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        # InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
         LambdaAuthorizer: !Ref LambdaAuthorizer
         ApiRootResourceId: !GetAtt Api.RootResourceId
         APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn
@@ -87,7 +87,8 @@ Resources:
         UserPoolArn: !Ref UserPoolArn
         TableName: !Ref TableName
         Api: !Ref Api
-        InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        # InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        LambdaAuthorizer: !Ref LambdaAuthorizer
         ApiRootResourceId: !GetAtt Api.RootResourceId
         APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn
 
@@ -101,7 +102,8 @@ Resources:
         UserPoolArn: !Ref UserPoolArn
         TableName: !Ref TableName
         Api: !Ref Api
-        InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        # InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        LambdaAuthorizer: !Ref LambdaAuthorizer
         ApiRootResourceId: !GetAtt Api.RootResourceId
         APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn
 
@@ -115,7 +117,8 @@ Resources:
         UserPoolArn: !Ref UserPoolArn
         TableName: !Ref TableName
         Api: !Ref Api
-        InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        # InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        LambdaAuthorizer: !Ref LambdaAuthorizer
         ApiRootResourceId: !GetAtt Api.RootResourceId
         APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn
 
@@ -129,6 +132,7 @@ Resources:
         UserPoolArn: !Ref UserPoolArn
         TableName: !Ref TableName
         Api: !Ref Api
-        InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        # InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        LambdaAuthorizer: !Ref LambdaAuthorizer
         ApiRootResourceId: !GetAtt Api.RootResourceId
         APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn

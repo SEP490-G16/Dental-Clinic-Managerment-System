@@ -20,7 +20,9 @@ Parameters:
   PyMySQLLayerArn:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
-
+  LambdaAuthorizerFunctionArn:
+    Type: String
+    
 Resources:
   MyApi:
     Type: AWS::Serverless::Api
@@ -32,10 +34,10 @@ Resources:
         AllowMethods: "'OPTIONS,GET,DELETE,PUT,POST'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
       Auth:
-        DefaultAuthorizer: MyCognitoAuthorizer
+        DefaultAuthorizer: LambdaAuthorizer
         Authorizers:
-          MyCognitoAuthorizer:
-            UserPoolArn: !Ref UserPoolArn
+          LambdaAuthorizer:
+            FunctionArn: !Ref LambdaAuthorizerFunctionArn
 
   CreateAExaminationFunction:
     Type: AWS::Serverless::Function

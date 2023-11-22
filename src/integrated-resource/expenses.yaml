@@ -13,7 +13,9 @@ Parameters:
     Type: String
   Api:
     Type: String
-  InteCognitoAuthorizer:
+  # InteCognitoAuthorizer:
+  #   Type: String
+  LambdaAuthorizer:
     Type: String
   ApiRootResourceId:
     Type: String
@@ -48,8 +50,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref ExpensesResource
       HttpMethod: POST
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       Integration:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
@@ -107,8 +109,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref EpochResource
       HttpMethod: PUT
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       RequestParameters:
         method.request.path.epoch: true
       Integration:
@@ -170,8 +172,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref EpochResource
       HttpMethod: DELETE
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       RequestParameters:
         method.request.path.epoch: true
       Integration:
@@ -229,8 +231,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref EndEpochResource
       HttpMethod: GET
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       RequestParameters:
         method.request.path.epoch: true
         method.request.path.end-date: true

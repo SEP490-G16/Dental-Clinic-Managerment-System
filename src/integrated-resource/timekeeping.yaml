@@ -13,7 +13,9 @@ Parameters:
     Type: String
   Api:
     Type: String
-  InteCognitoAuthorizer:
+  # InteCognitoAuthorizer:
+  #   Type: String
+  LambdaAuthorizer:
     Type: String
   ApiRootResourceId:
     Type: String
@@ -48,8 +50,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref TimekeepingResource
       HttpMethod: POST
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       Integration:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
@@ -127,8 +129,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref EndTimeKeepingResource
       HttpMethod: GET
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       RequestParameters:
         method.request.path.start-time: true
         method.request.path.end-time: true
@@ -182,8 +184,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref EndTimeKeepingResource
       HttpMethod: DELETE
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       RequestParameters:
         method.request.path.start-time: true
         method.request.path.end-time: true

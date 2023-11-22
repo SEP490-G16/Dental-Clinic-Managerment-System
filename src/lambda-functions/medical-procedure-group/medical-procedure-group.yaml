@@ -20,7 +20,9 @@ Parameters:
   PyMySQLLayerArn:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
-
+  LambdaAuthorizerFunctionArn:
+    Type: String
+    
 Resources:
   MyApi:
     Type: AWS::Serverless::Api
@@ -28,10 +30,10 @@ Resources:
       StageName: !Ref StageName
       Name: !Sub "${StageName}-${AppName}-medical-procedure-group-api"
       Auth:
-        DefaultAuthorizer: MyCognitoAuthorizer
+        DefaultAuthorizer: LambdaAuthorizer
         Authorizers:
-          MyCognitoAuthorizer:
-            UserPoolArn: !Ref UserPoolArn
+          LambdaAuthorizer:
+            FunctionArn: !Ref LambdaAuthorizerFunctionArn
 
   GetOneResource:
     Type: AWS::Serverless::Function
