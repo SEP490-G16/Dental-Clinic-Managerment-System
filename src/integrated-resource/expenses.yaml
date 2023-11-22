@@ -56,19 +56,24 @@ Resources:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem" # Sử dụng PutItem thay vì UpdateItem để tạo mới bản ghi
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem" 
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestTemplates:
           application/json:
             "Fn::Sub":
               - |
-                #set($currentEpochTime = $context.requestTimeEpoch / 1000)
                 {
                   "TableName":"${TableName}",
-                  "Item": {
-                    "type": {"S": "e"},
-                    "epoch": {"N": "$currentEpochTime"},
-                    "expenses": {"S": "$util.urlDecode($input.path('$.expenses'))"}
+                  "Key": {
+                    "type": {"S":"a"},
+                    "epoch": {"N":"$input.path('$.epoch')"}
+                  },
+                  "UpdateExpression": "SET #requestIdField = :newValues",
+                  "ExpressionAttributeNames": {
+                    "#requestIdField": "$requestId"
+                  },
+                  "ExpressionAttributeValues": {
+                    ":newValues": {"S": "$util.urlDecode($input.path('$.expenses'))"}
                   }
                 }
               - TableName: !Ref TableName
@@ -129,7 +134,10 @@ Resources:
                       "type": {"S": "e"},
                       "epoch": {"N": "$util.urlDecode($input.params('epoch'))"}
                   },
-                  "UpdateExpression": "SET expenses = :expenses",
+                  "UpdateExpression": "SET #attrName = :expenses",
+                  "ExpressionAttributeNames": {
+                    "#attrName": "$util.urlDecode($input.path('$.expenses_id'))"
+                  },
                   "ExpressionAttributeValues": {
                     ":expenses": {"S": "$util.urlDecode($input.path('$.expenses'))"}
                   }
@@ -170,17 +178,18 @@ Resources:
     Type: "AWS::ApiGateway::Method"
     Properties:
       RestApiId: !Ref Api
-      ResourceId: !Ref EpochResource
+      ResourceId: !Ref EndEpochResource
       HttpMethod: DELETE
       AuthorizationType: CUSTOM
       AuthorizerId: !Ref LambdaAuthorizer
       RequestParameters:
         method.request.path.epoch: true
+        method.request.path.end-date: true
       Integration:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/DeleteItem"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestTemplates:
           application/json:
@@ -189,8 +198,12 @@ Resources:
                 {
                   "TableName": "${TableName}",
                   "Key": {
-                      "type": {"S": "e"},
-                      "epoch": {"N": "$util.urlDecode($input.params('epoch'))"}
+                    "type": {"S":"e"},
+                    "epoch": {"N":"$util.urlDecode($input.params('epoch'))"}
+                  },
+                  "UpdateExpression": "REMOVE #field_name",
+                  "ExpressionAttributeNames": {
+                    "#field_name": "$util.urlDecode($input.params('end-date'))"
                   }
                 }
               - TableName: !Ref TableName
