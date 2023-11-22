@@ -15,6 +15,8 @@ Parameters:
     Type: String
   InteCognitoAuthorizer:
     Type: String
+  LambdaAuthorizer:
+    Type: String
   ApiRootResourceId:
     Type: String
   APIGatewayIntegreatedRoleArn:
@@ -41,8 +43,8 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref WaitingRoomResource
       HttpMethod: GET
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref InteCognitoAuthorizer
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref LambdaAuthorizer
       RequestParameters:
         method.request.path.start-time: true
         method.request.path.end-time: true

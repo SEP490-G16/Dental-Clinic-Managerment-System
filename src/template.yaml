@@ -68,7 +68,7 @@ Resources:
 
   IntegratedResourceStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: InfrastructureStack
+    DependsOn: LambdaFunctions
     Properties:
       TemplateURL: ./integrated-resource/integrated-resource.yaml
       Parameters:
@@ -76,3 +76,4 @@ Resources:
         UserPoolArn: !GetAtt InfrastructureStack.Outputs.CognitoUserPoolArn
         TableName: !Sub "${StageName}-${AppName}-db"
         AppName: !Sub ${AppName}
+        LambdaAuthorizerFunctionArn: !GetAtt LambdaFunctions.Outputs.LambdaAuthorizerFunctionArn

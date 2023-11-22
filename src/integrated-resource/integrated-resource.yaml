@@ -11,7 +11,9 @@ Parameters:
     Type: String
   UserPoolArn:
     Type: String
-
+  LambdaAuthorizerFunctionArn:
+    Type: String
+    
 Resources:
   Api:
     Type: "AWS::ApiGateway::RestApi"
@@ -27,6 +29,16 @@ Resources:
       IdentitySource: method.request.header.Authorization
       ProviderARNs:
         - !Ref UserPoolArn
+
+  LambdaAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: "LambdaAuthorizer"
+      RestApiId: !Ref Api
+      Type: TOKEN
+      IdentitySource: "method.request.header.Authorization"
+      AuthorizerUri: !Sub arn:aws:apigateway:ap-southeast-1:lambda:path/2015-03-31/functions/${LambdaAuthorizerFunctionArn}/invocations
+      AuthorizerResultTtlInSeconds: 300
 
   APIGatewayIntegreatedRole:
     Type: "AWS::IAM::Role"
@@ -61,6 +73,7 @@ Resources:
         TableName: !Ref TableName
         Api: !Ref Api
         InteCognitoAuthorizer: !Ref InteCognitoAuthorizer
+        LambdaAuthorizer: !Ref LambdaAuthorizer
         ApiRootResourceId: !GetAtt Api.RootResourceId
         APIGatewayIntegreatedRoleArn: !GetAtt APIGatewayIntegreatedRole.Arn
 
