@@ -58,6 +58,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   MedicalProcedureFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -72,6 +73,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   TreatmentCourseGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -86,6 +88,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   FacilityGroupFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -100,6 +103,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   LaboFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -114,6 +118,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   MedicalSupplyFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -128,6 +133,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   MaterialFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -142,6 +148,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   ImportMaterialFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -156,6 +163,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   MaterialWarehouseFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -170,6 +178,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   ExaminationFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -184,6 +193,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   MaterialUsageFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -198,6 +208,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   PaidMaterialUsageFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -212,6 +223,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   MpTcFunctionsStack:
     Type: AWS::CloudFormation::Stack
@@ -226,6 +238,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   StaffFunctionsWithCognitoStack:
     Type: AWS::CloudFormation::Stack
@@ -241,6 +254,7 @@ Resources:
         Username: !Ref Username
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
   AuthFunctionsStack:
     Type: AWS::CloudFormation::Stack
