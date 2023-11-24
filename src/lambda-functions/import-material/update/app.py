@@ -68,7 +68,7 @@ def lambda_handler(event, context):
         cursor.execute(query, ( data.get('creator'),
                                 get_value_or_none(data, 'description'),
                                 data.get('created_date'),
-                                get_value_or_none('facility_id'),
+                                get_value_or_none(data, 'facility_id'),
                                 id))
 
         conn.commit()

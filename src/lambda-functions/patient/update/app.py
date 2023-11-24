@@ -37,7 +37,7 @@ def lambda_handler(event, context):
 
         query = """
         UPDATE `patient` 
-        SET patient_name=%s, date_of_birth=%s, gender=%s, phone_number=%s, full_medical_history=%s, 
+        SET patient_name=%s, date_of_birth=FROM_UNIXTIME(%s), gender=%s, phone_number=%s, full_medical_history=%s, 
             dental_medical_history=%s, email=%s, address=%s, description=%s, profile_image=%s
         WHERE patient_id=%s;
         """

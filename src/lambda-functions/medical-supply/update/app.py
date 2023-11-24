@@ -2,6 +2,9 @@ import json
 import pymysql
 import os
 import datetime
+import boto3
+
+dynamodb = boto3.client('dynamodb')
 
 def get_value_or_none(data, key):
     return data[key] if key in data else None
@@ -82,6 +85,29 @@ def lambda_handler(event, context):
                                 data.get('status'),
                                 id))
 
+        if int(data.get('status')) == 3:
+            received_date = int(int(get_value_or_none(data, 'received_date'))/86400)*86400
+            total_amount = int(get_value_or_none(data, 'quantity')) * int(get_value_or_none(data, 'unit_price'))
+            dynamodb.update_item(
+                TableName = os.environ['DYNAMODB_TABLE'],
+                Key={
+                    'type': {'S': 'e'},
+                    'epoch': {'N': str(received_date)}
+                },
+                UpdateExpression="set #id = :i",
+                ExpressionAttributeNames={
+                    '#id': str(id)
+                },
+                ExpressionAttributeValues={
+                    ':i': {'S': json.dumps({
+                        "createBy": get_value_or_none(data, 'orderer'),
+                        "typeExpense": 1,
+                        "totalAmount": str(total_amount),
+                        "note": get_value_or_none(data, 'description'),
+                        "facility_id": get_value_or_none(data, 'facility_id')
+                    }, ensure_ascii=False)}
+                }
+            )
         conn.commit()
         if cursor.rowcount == 0:
             response =  create_response(status_code=404, message='Medical supply not found')

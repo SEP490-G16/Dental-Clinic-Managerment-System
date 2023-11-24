@@ -61,7 +61,7 @@ def lambda_handler(event, context):
 
         cursor.execute(query, ( data.get('creator'),
                                 get_value_or_none(data, 'description'),
-                                get_value_or_none('facility_id')))
+                                get_value_or_none(data, 'facility_id')))
         
         cursor.execute("SELECT id FROM import_material ORDER BY id DESC LIMIT 1;")
         row = cursor.fetchone()

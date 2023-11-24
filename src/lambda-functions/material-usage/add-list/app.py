@@ -2,6 +2,9 @@ import json
 import pymysql
 import os
 import datetime
+import boto3
+
+dynamodb = boto3.client('dynamodb')
 
 def get_value_or_none(data, key):
     return data[key] if key in data else None
@@ -48,32 +51,19 @@ def lambda_handler(event, context):
 
     data = json.loads(event['body'])
 
-    # material_ids = {}
-    # duplicated_material_ids = []
-
-    # for item in data:
-    #     material_id = item.get('material_id')
-    #     if material_id in material_ids:
-    #         duplicated_material_ids.append(material_id)
-    #     material_ids[material_id] = True
-
-    # if duplicated_material_ids:
-    #     return create_response(400, "Material IDs are duplicated in the request.", duplicated_material_ids)
-
-    # check required
     missing_fields_list = []
 
     required_fields = ['treatment_course_id', 'examination_id', 'quantity', 'price']
 
     for item in data:
-        if (get_value_or_none(data, 'material_warehouse_id') is not None and get_value_or_none(data, 'medical_procedure_id') is not None) or (get_value_or_none(data, 'material_warehouse_id') is None and get_value_or_none(data, 'medical_procedure_id') is None):
-            return create_response(400, 'Your request must include either \'material_warehouse_id\' or \'medical_procedure_id\', but not both')
-
+        if (get_value_or_none(item, 'material_warehouse_id') is not None) == (get_value_or_none(item, 'medical_procedure_id') is not None):
+            return create_response(400, "Your request must include either 'material_warehouse_id' or 'medical_procedure_id', but not both")
+    
     for item in data:
         missing_fields = [field for field in required_fields if field not in item]
         if missing_fields:
             missing_fields_list.append({'examination_id': item.get('examination_id'), 'missing_fields': missing_fields})
-
+    
     if missing_fields_list:
         missing_materials = ', '.join([f"Examination ID: {item['examination_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
         return create_response(400, f"Missing fields for the following materials: {missing_materials}")
@@ -85,9 +75,29 @@ def lambda_handler(event, context):
         query = """INSERT INTO `material_usage` (`material_warehouse_id`, `medical_procedure_id`, `treatment_course_id`, `examination_id`, `quantity`, `price`, `total_paid`, `description`) VALUES """
         query_data = ()
         for item in data:
-            query += "(%s, %s, %s, %s, %s, %s, %s),"
+            query += "(%s, %s, %s, %s, %s, %s, %s, %s),"
             query_data += (get_value_or_none(item, 'material_warehouse_id'), get_value_or_none(item, 'medical_procedure_id'), get_value_or_none(item, 'treatment_course_id'), get_value_or_none(item, 'examination_id'), get_value_or_none(item, 'quantity'), get_value_or_none(item, 'price'), get_value_or_none(item, 'total_paid'), get_value_or_none(item, 'description'))
         cursor.execute(query[:-1], query_data)
+        dynamodb.update_item(
+            TableName = os.environ['DYNAMODB_TABLE'],
+            Key={
+                'type': {'S': 'e'},
+                'epoch': {'N': str(received_date)}
+            },
+            UpdateExpression="set #id = :i",
+            ExpressionAttributeNames={
+                '#id': str(id)
+            },
+            ExpressionAttributeValues={
+                ':i': {'S': json.dumps({
+                    "createBy": get_value_or_none(data, 'orderer'),
+                    "typeExpense": 1,
+                    "totalAmount": str(total_amount),
+                    "note": get_value_or_none(data, 'description'),
+                    "facility_id": get_value_or_none(data, 'facility_id')
+                }, ensure_ascii=False)}
+            }
+        )
         conn.commit()
         response = create_response(201, message='Invoice created successfully')
     except pymysql.MySQLError as e:
