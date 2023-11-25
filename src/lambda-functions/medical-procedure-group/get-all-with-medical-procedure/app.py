@@ -51,17 +51,17 @@ def lambda_handler(event, context):
     cursor = conn.cursor()
     try:
         query = """
-          SELECT 
-              mg.medical_procedure_group_id AS mg_id,
-              mg.name AS mg_name,
-              mg.description AS mg_description,
-              mp.medical_procedure_id AS mp_id,
-              mp.name AS mp_name,
-              mp.price AS mp_price,
-              mp.description AS mp_description
-          FROM medical_procedure_group mg
-          JOIN medical_procedure mp ON mg.medical_procedure_group_id = mp.medical_procedure_group_id
-          WHERE mp.active != 0 AND mg.active != 0;
+            SELECT 
+                mg.medical_procedure_group_id AS mg_id,
+                mg.name AS mg_name,
+                mg.description AS mg_description,
+                mp.medical_procedure_id AS mp_id,
+                mp.name AS mp_name,
+                mp.price AS mp_price,
+                mp.description AS mp_description
+            FROM medical_procedure_group mg
+            LEFT JOIN medical_procedure mp ON mg.medical_procedure_group_id = mp.medical_procedure_group_id
+            WHERE (mp.active != 0 OR mp.active IS NULL) AND mg.active != 0;
           """
         cursor.execute(query)
         rows = cursor.fetchall()

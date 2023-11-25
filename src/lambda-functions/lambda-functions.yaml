@@ -279,7 +279,6 @@ Resources:
         StageName: !Ref StageName
         AppName: !Ref AppName
         UserPoolArn: !Ref UserPoolArn
-        UserPoolId: !Ref UserPoolId
         DBHost: !Ref DBHost
         Database: !Ref Database
         Username: !Ref Username
