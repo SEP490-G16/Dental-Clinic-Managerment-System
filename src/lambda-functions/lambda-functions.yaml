@@ -270,6 +270,23 @@ Resources:
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
         LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
+  ExpensesFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
+    Properties:
+      TemplateURL: expenses/expenses.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        UserPoolId: !Ref UserPoolId
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
+
   AuthFunctionsStack:
     Type: AWS::CloudFormation::Stack
     Properties:

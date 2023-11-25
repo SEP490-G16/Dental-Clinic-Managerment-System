@@ -48,27 +48,16 @@ def lambda_handler(event, context):
 
     data = json.loads(event['body'])
 
-    # material_ids = {}
-    # duplicated_material_ids = []
-
-    # for item in data:
-    #     material_id = item.get('material_id')
-    #     if material_id in material_ids:
-    #         duplicated_material_ids.append(material_id)
-    #     material_ids[material_id] = True
-
-    # if duplicated_material_ids:
-    #     return create_response(400, "Material IDs are duplicated in the request.", duplicated_material_ids)
-
-    # check required
     missing_fields_list = []
 
-    required_fields = ['material_usage_id', 'examination_id', 'total_paid']
+    required_fields = ['material_usage_id', 'total_paid']
 
     for item in data:
         missing_fields = [field for field in required_fields if field not in item]
         if missing_fields:
             missing_fields_list.append({'material_usage_id': item.get('material_usage_id'), 'missing_fields': missing_fields})
+        if get_value_or_none(item, 'examination_id') is None and get_value_or_none(item, 'treatment_course_id') is None:
+            return create_response(400, "Your request must include either 'examination_id' or 'treatment_course_id'")
 
     if missing_fields_list:
         missing_materials = ', '.join([f"Material usage ID: {item['material_usage_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
@@ -78,11 +67,23 @@ def lambda_handler(event, context):
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         conn.autocommit(False)
         cursor = conn.cursor()
-        query = """INSERT INTO `paid_material_usage` (`material_usage_id`, `examination_id`, `total_paid`) VALUES """
+        
+        cursor.execute("INSERT INTO `receipt`() VALUES ();")
+        cursor.execute("SELECT `receipt_id` FROM receipt ORDER BY receipt_id DESC LIMIT 1;")
+        row_receipt = cursor.fetchone()
+        receipt_id = row_receipt[0]
+        
+        query = """
+            INSERT INTO `paid_material_usage` (`material_usage_id`, `examination_id`, `total_paid`, `treatment_course_id`, `receipt_id`) VALUES 
+            """
         query_data = ()
         for item in data:
-            query += "(%s, %s, %s),"
-            query_data += (get_value_or_none(item, 'material_usage_id'), get_value_or_none(item, 'examination_id'), get_value_or_none(item, 'total_paid'))
+            if get_value_or_none(item, 'examination_id') is not None:
+                query += "(%s, %s, %s, (SELECT treatment_course_id FROM examination WHERE examination_id = %s), %s),"
+                query_data += (get_value_or_none(item, 'material_usage_id'), get_value_or_none(item, 'examination_id'), get_value_or_none(item, 'total_paid'), get_value_or_none(item, 'examination_id'), receipt_id)
+            else:
+                query += "(%s, %s, %s, %s, %s),"
+                query_data += (get_value_or_none(item, 'material_usage_id'), get_value_or_none(item, 'examination_id'), get_value_or_none(item, 'total_paid'), get_value_or_none(item, 'treatment_course_id'), receipt_id)
         cursor.execute(query[:-1], query_data)
         conn.commit()
         response = create_response(201, message='Receipt created successfully')

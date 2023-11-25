@@ -68,13 +68,19 @@ def lambda_handler(event, context):
         SET 
         `patient_id` = %s, 
         `description` = %s,
-        `name` = %s
+        `name` = %s,
+        `chief_complaint` = %s,
+        `provisional_diagnosis` = %s,
+        `differential_diagnosis` = %s
         WHERE `treatment_course_id` = %s;
         """
 
         cursor.execute(query, (data.get('patient_id'),
                                get_value_or_none(data, 'description'),
                                data.get('name'),
+                               get_value_or_none(data, 'chief_complaint'),
+                               get_value_or_none(data, 'provisional_diagnosis'),
+                               get_value_or_none(data, 'differential_diagnosis'),
                                treatment_course_id))
 
         if cursor.rowcount == 0:

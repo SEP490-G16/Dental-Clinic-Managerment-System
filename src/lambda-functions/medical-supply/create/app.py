@@ -56,8 +56,8 @@ def lambda_handler(event, context):
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
-        query = """INSERT INTO `medical_supply` (`type`, `name`, `quantity`, `unit_price`, `order_date`, `orderer`, `received_date`, `receiver`, `warranty`, `description`, `facility_id`, `labo_id`, `used_date`, `patient_id`)
-                VALUES (%s, %s, %s, %s, FROM_UNIXTIME(%s), %s, FROM_UNIXTIME(%s), %s, %s, %s, %s, %s, FROM_UNIXTIME(%s), %s);"""
+        query = """INSERT INTO `medical_supply` (`type`, `name`, `quantity`, `unit_price`, `order_date`, `orderer`, `received_date`, `receiver`, `warranty`, `description`, `facility_id`, `labo_id`, `used_date`, `patient_id`, `treatment_course_id`)
+                VALUES (%s, %s, %s, %s, FROM_UNIXTIME(%s), %s, FROM_UNIXTIME(%s), %s, %s, %s, %s, %s, FROM_UNIXTIME(%s), %s, %s);"""
 
         cursor.execute(query, ( data.get('type'),
                                 data.get('name'),
@@ -72,7 +72,8 @@ def lambda_handler(event, context):
                                 data.get('facility_id'),
                                 get_value_or_none(data, 'labo_id'),
                                 get_value_or_none(data, 'used_date'),
-                                get_value_or_none(data, 'patient_id')))
+                                get_value_or_none(data, 'patient_id'),
+                                get_value_or_none(data, 'treatment_course_id')))
         
         cursor.execute("SELECT medical_supply_id FROM medical_supply ORDER BY medical_supply_id DESC LIMIT 1;")
         row = cursor.fetchone()

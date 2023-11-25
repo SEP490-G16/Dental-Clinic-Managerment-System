@@ -53,6 +53,7 @@ Resources:
           DATABASE: !Ref Database
           USERNAME: !Ref Username
           PASSWORD: !Ref Password
+          DYNAMODB_TABLE: !Sub "${StageName}-${AppName}-db"
       Events:
         CreateActivities:
           Type: Api

@@ -63,14 +63,17 @@ def lambda_handler(event, context):
 
         query = """
         INSERT INTO `treatment_course` 
-        (`patient_id`, `description`, `name`) 
+        (`patient_id`, `description`, `name`, `chief_complaint`, `provisional_diagnosis`, `differential_diagnosis`) 
         VALUES 
-        (%s, %s, %s);
+        (%s, %s, %s, %s, %s, %s);
         """
 
         cursor.execute(query, (data.get('patient_id'),
                                get_value_or_none(data, 'description'),
-                               data.get('name')))
+                               data.get('name'),
+                               get_value_or_none(data, 'chief_complaint'),
+                               get_value_or_none(data, 'provisional_diagnosis'),
+                               get_value_or_none(data, 'differential_diagnosis')))
 
         cursor.execute("SELECT treatment_course_id FROM treatment_course ORDER BY treatment_course_id DESC LIMIT 1;")
         row = cursor.fetchone()

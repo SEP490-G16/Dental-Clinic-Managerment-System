@@ -2,9 +2,6 @@ import json
 import pymysql
 import os
 import datetime
-import boto3
-
-dynamodb = boto3.client('dynamodb')
 
 def get_value_or_none(data, key):
     return data[key] if key in data else None
@@ -78,26 +75,6 @@ def lambda_handler(event, context):
             query += "(%s, %s, %s, %s, %s, %s, %s, %s),"
             query_data += (get_value_or_none(item, 'material_warehouse_id'), get_value_or_none(item, 'medical_procedure_id'), get_value_or_none(item, 'treatment_course_id'), get_value_or_none(item, 'examination_id'), get_value_or_none(item, 'quantity'), get_value_or_none(item, 'price'), get_value_or_none(item, 'total_paid'), get_value_or_none(item, 'description'))
         cursor.execute(query[:-1], query_data)
-        dynamodb.update_item(
-            TableName = os.environ['DYNAMODB_TABLE'],
-            Key={
-                'type': {'S': 'e'},
-                'epoch': {'N': str(received_date)}
-            },
-            UpdateExpression="set #id = :i",
-            ExpressionAttributeNames={
-                '#id': str(id)
-            },
-            ExpressionAttributeValues={
-                ':i': {'S': json.dumps({
-                    "createBy": get_value_or_none(data, 'orderer'),
-                    "typeExpense": 1,
-                    "totalAmount": str(total_amount),
-                    "note": get_value_or_none(data, 'description'),
-                    "facility_id": get_value_or_none(data, 'facility_id')
-                }, ensure_ascii=False)}
-            }
-        )
         conn.commit()
         response = create_response(201, message='Invoice created successfully')
     except pymysql.MySQLError as e:
