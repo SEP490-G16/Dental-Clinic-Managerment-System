@@ -4,10 +4,9 @@ import os
 import datetime
 import decimal
 import boto3
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
+table = boto3.resource('dynamodb').Table(os.environ['DYNAMODB_TABLE'])
 
 def transform_row(row):
     transformed_row = []
@@ -104,7 +103,15 @@ def lambda_handler(event, context):
             dict(zip(column_names, transform_row(row))) for row in rows]
         res_data['import_material'] = transformed_rows
 
-        res_data['dynamo'] = table.query(KeyConditionExpression=Key('type').eq('e') & Key('epoch').between(int(event['pathParameters']['start-date']), int(event['pathParameters']['end-date'])))
+        dynamo_result = table.query(
+            KeyConditionExpression=Key('type').eq('e') & Key('epoch').between(
+                int(event['pathParameters']['start-date']),
+                int(event['pathParameters']['end-date'])
+            )
+        )
+        
+        res_data['dynamo'] = str(dynamo_result.get('Items', []))
+        
         response =  create_response(200, '', res_data)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)

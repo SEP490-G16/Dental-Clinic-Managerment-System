@@ -155,6 +155,35 @@ Resources:
                 - "rds:*"
               Resource: "*"
 
+  GetMaterialUsageByPatientIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-by-patient-id
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /material-usage/patient/{id}
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
   UpdateMaterialUsageFunction:
     Type: AWS::Serverless::Function
     Properties:
