@@ -39,6 +39,12 @@ Parameters:
   AppName:
     Type: String
     Default: "dcms"
+  BucketImageName:
+    Type: String
+    Default: "nhakhoanguyentran-image"
+  Region:
+    Type: String
+    Default: "ap-southeast-1"
 
 Resources:
   InfrastructureStack:
@@ -65,6 +71,8 @@ Resources:
         Username: !Ref DBUsername
         Password: !Ref DBPassword
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        BucketImageName: !Ref BucketImageName
+        Region: !Ref Region
 
   IntegratedResourceStack:
     Type: AWS::CloudFormation::Stack

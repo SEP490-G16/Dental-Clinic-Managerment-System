@@ -2,6 +2,11 @@ import json
 import pymysql
 import os
 import datetime
+import boto3
+import base64
+from botocore.exceptions import ClientError
+
+s3_client = boto3.client('s3')
 
 def get_value_or_none(data, key):
     return data[key] if key in data else None
@@ -53,19 +58,46 @@ def lambda_handler(event, context):
 
     if missing_fields:
         return create_response(400, f"Fields {', '.join(missing_fields)} are required")
+        
+    image_arr = get_value_or_none(data, 'image')
+    image_str = None
+    image_des = None
+    count = 0
+    try:
+        for item in image_arr:
+            image_url = None
+            if item['base64']:
+                count += 1
+                image_url_s3 = "{}/{}.jpg".format(event['requestContext']['requestId'], str(count))
+                image_data = base64.b64decode(item['image_data'])
+                s3_client.put_object(Body=image_data, Bucket=os.environ.get('BUCKET_IMAGE_NAME'), Key=image_url_s3, ACL='public-read',ContentType='image/jpeg')
+                image_url = "https://{}.s3.{}.amazonaws.com/{}".format(os.environ.get('BUCKET_IMAGE_NAME'), os.environ.get('REGION'), image_url_s3)
+            else:
+                image_url = item['image_data']
+            image_str = image_url if image_str is None else image_str + "><" + image_url
+            des = "{}||{}".format(image_url, item['description'])
+            image_des = des if image_des is None else image_des + "><" + des
+    except ClientError as e:
+        return create_response(501, 'Internal error', None, str(e.__class__.__name__))
+    except Exception as e:
+        return create_response(502, 'Internal error', None, str(e.__class__.__name__))
+
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
+        
         query = """INSERT INTO `examination` (`diagnosis`, `x-ray-image`, `treatment_course_id`, `facility_id`, `description`, `staff_id`, `x-ray-image-des`, `medicine`)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
-
+        
         cursor.execute(query, (get_value_or_none(data, 'diagnosis'),
-                               get_value_or_none(data, 'x-ray-image'),
+                            #   get_value_or_none(data, 'x-ray-image'),
+                               image_str,
                                get_value_or_none(data, 'treatment_course_id'),
                                get_value_or_none(data, 'facility_id'),
                                get_value_or_none(data, 'description'),
                                get_value_or_none(data, 'staff_id'),
-                               get_value_or_none(data, 'x-ray-image-des'),
+                            #   get_value_or_none(data, 'x-ray-image-des'),
+                               image_des,
                                get_value_or_none(data, 'medicine')))
         
         cursor.execute("SELECT examination_id FROM examination ORDER BY examination_id DESC LIMIT 1;")

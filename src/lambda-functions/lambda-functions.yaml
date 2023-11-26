@@ -27,6 +27,10 @@ Parameters:
   PyMySQLLayerArn:
     Description: ARN of the Lambda layer to associate with our function
     Type: String
+  BucketImageName:
+    Type: String
+  Region:
+    Type: String
 
 Resources:
   PatientFunctionsStack:
@@ -204,6 +208,8 @@ Resources:
         Password: !Ref Password
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
         LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
+        BucketImageName: !Ref BucketImageName
+        Region: !Ref Region
 
   MaterialUsageFunctionsStack:
     Type: AWS::CloudFormation::Stack

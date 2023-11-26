@@ -22,6 +22,10 @@ Parameters:
     Type: String
   LambdaAuthorizerFunctionArn:
     Type: String
+  BucketImageName:
+    Type: String
+  Region:
+    Type: String
     
 Resources:
   MyApi:
@@ -53,6 +57,9 @@ Resources:
           DATABASE: !Ref Database
           USERNAME: !Ref Username
           PASSWORD: !Ref Password
+          BUCKET_IMAGE_NAME: !Ref BucketImageName
+          REGION: !Ref Region
+
       Events:
         CreateActivities:
           Type: Api
