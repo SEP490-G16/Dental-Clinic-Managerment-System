@@ -95,7 +95,9 @@ Resources:
                     "patient_id": "$field.patient_id.S",
                     "patient_name": "$field.patient_name.S",
                     "reason": "$field.reason.S",
-                    "status": "$field.status_value.N"
+                    "status": "$field.status_value.N",
+                    "appointment_id": "$field.appointment_id.S",
+                    "appointment_epoch": "$field.appointment_epoch.S"
                   }
                   #if($foreach.hasNext),#end
                 #end]
@@ -154,7 +156,9 @@ Resources:
                     ":patient_id": {"S": "$input.path('$.patient_id')"},
                     ":patient_name": {"S": "$input.path('$.patient_name')"},
                     ":reason": {"S": "$input.path('$.reason')"},
-                    ":status": {"N": "$input.path('$.status')"}
+                    "status_value": {"N": "$input.path('$.status')"},
+                    "appointment_id": {"S": "$input.path('$.appointment_id')"},
+                    "appointment_epoch": {"S": "$input.path('$.appointment_epoch')"}
                   }
                 }
               - TableName: !Ref TableName
@@ -217,7 +221,9 @@ Resources:
                     "patient_id": {"S": "$input.path('$.patient_id')"},
                     "patient_name": {"S": "$input.path('$.patient_name')"},
                     "reason": {"S": "$input.path('$.reason')"},
-                    "status_value": {"N": "$input.path('$.status')"}
+                    "status_value": {"N": "$input.path('$.status')"},
+                    "appointment_id": {"S": "$input.path('$.appointment_id')"},
+                    "appointment_epoch": {"S": "$input.path('$.appointment_epoch')"}
                   }
                 }
               - TableName: !Ref TableName
