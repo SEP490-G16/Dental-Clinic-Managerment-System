@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "ZNS functions stack."
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+
+Resources:
+  ScheduledZNSFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: send-zns
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          DYNAMODB: !Sub "${StageName}-${AppName}-db"
+      Events:
+        SendZNSSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 13 * * ? *) # UTC time for 8 PM GMT+7
+            Enabled: True

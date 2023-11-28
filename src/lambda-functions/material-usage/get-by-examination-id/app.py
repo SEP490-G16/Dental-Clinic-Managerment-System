@@ -4,6 +4,7 @@ import os
 import datetime
 from collections import defaultdict
 
+
 def transform_row(row):
     transformed_row = []
     for value in row:
@@ -19,7 +20,7 @@ def get_mysql_error_message(error_code):
         1045: "Access denied for user",
         1049: "Unknown database",
         1146: "Table doesn't exist",
-        1452: "Foreign key constraint fails", 
+        1452: "Foreign key constraint fails",
         1062: "Duplicate entry",
         1054: "Unknown column in field list"
     }
@@ -57,10 +58,10 @@ def lambda_handler(event, context):
             not event['pathParameters']['id'] or
             event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
-    
+
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
-                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+                               passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
           SELECT 
@@ -83,6 +84,7 @@ def lambda_handler(event, context):
               m.material_name AS mw_material_name,
               m.unit AS mw_unit,
               mp.medical_procedure_id AS mp_medical_procedure_id,
+              mp.medical_procedure_group_id AS mp_medical_procedure_group_id,
               mp.name AS mp_name,
               mp.description AS mp_description
           FROM 
@@ -99,33 +101,36 @@ def lambda_handler(event, context):
         cursor.execute(query, (event['pathParameters']['id']))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
+        transformed_rows = [
+            dict(zip(column_names, transform_row(row))) for row in rows]
+        # grouped_data = defaultdict(lambda: {'mu_data': [], 'mw_data': None, 'mp_data': None})
+        # for row in rows:
+        #     transformed_row = transform_row(row)
+        #     row_dict = dict(zip(column_names, transformed_row))
 
-        grouped_data = defaultdict(lambda: {'mu_data': [], 'mw_data': None, 'mp_data': None})
-        for row in rows:
-            transformed_row = transform_row(row)
-            row_dict = dict(zip(column_names, transformed_row))
+        #     # Tạo key dựa trên ngày
+        #     key = row_dict['mu_created_date']
 
-            # Tạo key dựa trên ngày
-            key = row_dict['mu_created_date']
+        #     # Nhóm dữ liệu
+        #     grouped_data[key]['mu_data'].append({k: v for k, v in row_dict.items() if k.startswith('mu_')})
+        #     if 'mw_data' not in grouped_data[key] or grouped_data[key]['mw_data'] is None:
+        #         grouped_data[key]['mw_data'] = {k: v for k, v in row_dict.items() if k.startswith('mw_')}
+        #     if 'mp_data' not in grouped_data[key] or grouped_data[key]['mp_data'] is None:
+        #         grouped_data[key]['mp_data'] = {k: v for k, v in row_dict.items() if k.startswith('mp_')}
 
-            # Nhóm dữ liệu
-            grouped_data[key]['mu_data'].append({k: v for k, v in row_dict.items() if k.startswith('mu_')})
-            if 'mw_data' not in grouped_data[key] or grouped_data[key]['mw_data'] is None:
-                grouped_data[key]['mw_data'] = {k: v for k, v in row_dict.items() if k.startswith('mw_')}
-            if 'mp_data' not in grouped_data[key] or grouped_data[key]['mp_data'] is None:
-                grouped_data[key]['mp_data'] = {k: v for k, v in row_dict.items() if k.startswith('mp_')}
-
-        transformed_rows = list(grouped_data.values())
+        # transformed_rows = list(grouped_data.values())
 
         response = create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
-        response = create_response(status_code, error_message, None, str(e.__class__.__name__))
+        response = create_response(
+            status_code, error_message, None, str(e.__class__.__name__))
     except Exception as e:
         print("Error:", e)
-        response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        response = create_response(
+            500, 'Internal error', None, str(e.__class__.__name__))
     finally:
         if cursor:
             cursor.close()

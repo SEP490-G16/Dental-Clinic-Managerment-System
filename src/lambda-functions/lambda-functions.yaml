@@ -292,6 +292,15 @@ Resources:
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
         LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
+  ZNSFunctionStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
+    Properties:
+      TemplateURL: zns/zns.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+
   AuthFunctionsStack:
     Type: AWS::CloudFormation::Stack
     Properties:

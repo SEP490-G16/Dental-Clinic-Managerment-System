@@ -115,3 +115,12 @@ Resources:
               Action:
                 - "rds:*"
               Resource: "*"
+
+  AutoConfirmUserTriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: auto-confirm-user
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - CognitoPowerUser # Hoặc policy cụ thể hơn nếu cần
