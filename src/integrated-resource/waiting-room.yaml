@@ -61,7 +61,7 @@ Resources:
           application/json:
             "Fn::Sub":
               - |
-                #set($currentEpochTime = ($context.requestTimeEpoch / 1000) + 25200)
+                #set($currentEpochTime = ($context.requestTimeEpoch / 1000))
                 #set($secondsInADay = 86400)
                 #set($startOfDayEpoch = $currentEpochTime - ($currentEpochTime % $secondsInADay))
                 #set($endOfDayEpoch = $startOfDayEpoch + $secondsInADay - 1)
@@ -94,6 +94,7 @@ Resources:
                     "produce_name": "$field.produce_name.S",
                     "patient_id": "$field.patient_id.S",
                     "patient_name": "$field.patient_name.S",
+                    "patient_created_date": "$field.patient_created_date.S",
                     "reason": "$field.reason.S",
                     "status": "$field.status_value.N",
                     "appointment_id": "$field.appointment_id.S",
@@ -149,16 +150,17 @@ Resources:
                       "type": {"S": "w"},
                       "epoch": {"N": "$input.params('epoch')"}
                   },
-                  "UpdateExpression": "SET produce_id = :produce_id, produce_name = :produce_name, patient_id = :patient_id, patient_name = :patient_name, reason = :reason, status_value = :status",
+                  "UpdateExpression": "SET produce_id = :produce_id, produce_name = :produce_name, patient_id = :patient_id, patient_name = :patient_name, reason = :reason, patient_created_date = :patient_created_date, status_value = :status_value, appointment_id = :appointment_id, appointment_epoch = :appointment_epoch",
                   "ExpressionAttributeValues": {
                     ":produce_id": {"S": "$input.path('$.produce_id')"},
                     ":produce_name": {"S": "$input.path('$.produce_name')"},
                     ":patient_id": {"S": "$input.path('$.patient_id')"},
                     ":patient_name": {"S": "$input.path('$.patient_name')"},
                     ":reason": {"S": "$input.path('$.reason')"},
-                    "status_value": {"N": "$input.path('$.status')"},
-                    "appointment_id": {"S": "$input.path('$.appointment_id')"},
-                    "appointment_epoch": {"S": "$input.path('$.appointment_epoch')"}
+                    ":patient_created_date": {"S": "$input.path('$.patient_created_date')"},
+                    ":status_value": {"N": "$input.path('$.status_value')"},
+                    ":appointment_id": {"S": "$input.path('$.appointment_id')"},
+                    ":appointment_epoch": {"S": "$input.path('$.appointment_epoch')"}
                   }
                 }
               - TableName: !Ref TableName
@@ -221,6 +223,7 @@ Resources:
                     "patient_id": {"S": "$input.path('$.patient_id')"},
                     "patient_name": {"S": "$input.path('$.patient_name')"},
                     "reason": {"S": "$input.path('$.reason')"},
+                    "patient_created_date": {"S": "$input.path('$.patient_created_date')"},
                     "status_value": {"N": "$input.path('$.status')"},
                     "appointment_id": {"S": "$input.path('$.appointment_id')"},
                     "appointment_epoch": {"S": "$input.path('$.appointment_epoch')"}

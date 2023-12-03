@@ -18,6 +18,8 @@ Resources:
       Environment:
         Variables:
           DYNAMODB: !Sub "${StageName}-${AppName}-db"
+          APP_ID: "3616968889056264866"
+          SECRET_KEY: "COSF8rs5PE6D2W3LGizS"
       Events:
         SendZNSSchedule:
           Type: Schedule

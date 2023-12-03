@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Patient functions stack."
+
+Parameters:
+  StageName:
+    Type: String
+  AppName:
+    Type: String
+  UserPoolArn:
+    Type: String
+  DBHost:
+    Type: String
+  Database:
+    Type: String
+  Username:
+    Type: String
+  Password:
+    Type: String
+  PyMySQLLayerArn:
+    Description: ARN of the Lambda layer to associate with our function
+    Type: String
+  LambdaAuthorizerFunctionArn:
+    Type: String
+
+Resources:
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Name: !Sub "${StageName}-${AppName}-receipt-api"
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+      Auth:
+        DefaultAuthorizer: LambdaAuthorizer
+        Authorizers:
+          LambdaAuthorizer:
+            FunctionArn: !Ref LambdaAuthorizerFunctionArn
+
+  GetReceiptByPatientIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-by-patient-id
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /patient/{id}
+            Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"

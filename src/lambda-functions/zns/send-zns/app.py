@@ -1,9 +1,31 @@
 import json
 import urllib3
-from urllib.parse import urlencode
 import os
+import boto3
+import datetime
+from urllib.parse import urlencode
 
-access_token = ''
+dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-1')
+table = dynamodb.Table(os.environ['DYNAMODB'])
+
+epoch_time = (datetime.datetime.now() + datetime.timedelta(days=1)
+              ).replace(hour=0, minute=0, second=0, microsecond=0).timestamp() - 25200
+
+res_appointment = table.get_item(
+    Key={
+        'type': 'a',
+        'epoch': int(epoch_time)
+    }
+)
+
+table_res = table.get_item(
+    Key={
+        'type': 'zns',
+        'epoch': 0
+    }
+)
+
+refresh_token = table_res.get('Item', {}).get('refresh_token', None)
 
 
 def get_access_token():
@@ -18,7 +40,7 @@ def get_access_token():
     data = {
         'app_id': os.environ.get('APP_ID'),
         'grant_type': 'refresh_token',
-        'refresh_token': os.environ.get('REFRESH_TOKEN')
+        'refresh_token': refresh_token
     }
 
     encoded_data = urlencode(data)
@@ -27,7 +49,17 @@ def get_access_token():
 
     if response.status == 200:
         res = json.loads(response.data.decode('utf-8'))
+        table.put_item(
+            Item={
+                'type': 'zns',
+                'epoch': 0,
+                'refresh_token': res['refresh_token']
+            }
+        )
         return res['access_token']
+    else:
+        print(json.loads(response.data.decode('utf-8')))
+        return None
 
 
 def send_zalo_message():
@@ -67,7 +99,29 @@ def send_zalo_message():
         return None
 
 
+def test(access_token, phone, template_data):
+    print(phone)
+    print(template_data)
+
+
 def lambda_handler(event, context):
-    global access_token
-    access_token = get_access_token()
-    send_zalo_message()
+    data = res_appointment.get("Item")
+    # access_token = get_access_token()
+    for key, value in data.items():
+        if key not in ["type", "epoch"]:
+            dt = datetime.datetime.utcfromtimestamp(value.get('time') + 25200)
+            test(access_token="access_token",
+                 phone="phone",
+                 template_data={
+                     "customer_name": value.get('patient_name'),
+                     "phone_doctor_binh": "123",
+                     "phone_doctor_hoa": "123",
+                     "content": "",
+                     "time": "{:02d}:{:02d}".format(dt.hour, dt.minute),
+                     "appointment_date": "{:02d}/{:02d}/{:04d}".format(dt.day, dt.month, dt.year),
+                     "patient_name": value.get('patient_name'),
+                     "patient_code": value.get('patient_id'),
+                     "customer": "/xac-nhan-lich-hen",
+                     "change_appointment": "/benhnhan-zalo/doilichhen/{}/{}".format(data.get('epoch'), key)
+                 })
+    return data

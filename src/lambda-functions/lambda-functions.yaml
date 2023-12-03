@@ -292,6 +292,22 @@ Resources:
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
         LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
+  ReceiptFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
+    Properties:
+      TemplateURL: receipt/receipt.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
+
   ZNSFunctionStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: AuthFunctionsStack

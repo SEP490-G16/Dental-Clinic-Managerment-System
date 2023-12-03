@@ -29,7 +29,7 @@ Resources:
       RestApiId: !Ref Api
       ParentId: !Ref ApiRootResourceId
       PathPart: "expenses"
-  
+
   EpochResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
@@ -56,17 +56,18 @@ Resources:
         Type: AWS
         Credentials: !Ref APIGatewayIntegreatedRoleArn
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem" 
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestTemplates:
           application/json:
             "Fn::Sub":
               - |
+                #set($requestId = $context.requestId)
                 {
                   "TableName":"${TableName}",
                   "Key": {
-                    "type": {"S":"a"},
-                    "epoch": {"N":"$input.path('$.epoch')"}
+                    "type": {"S":"e"},
+                    "epoch": {"N":"$util.urlDecode($input.path('$.epoch'))"}
                   },
                   "UpdateExpression": "SET #requestIdField = :newValues",
                   "ExpressionAttributeNames": {
