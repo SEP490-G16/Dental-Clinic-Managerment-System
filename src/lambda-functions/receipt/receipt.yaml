@@ -39,7 +39,7 @@ Resources:
           LambdaAuthorizer:
             FunctionArn: !Ref LambdaAuthorizerFunctionArn
 
-  GetReceiptByPatientIdFunction:
+  GetReceiptByPatientIdNewFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: get-by-patient-id
