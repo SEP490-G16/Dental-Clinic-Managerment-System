@@ -58,8 +58,66 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
-            Path: /patient/{id}
+            Path: /receipt/patient/{id}
             Method: get
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
+  UpdateReceiptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /receipt/{id}
+            Method: put
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
+  DeleteReceiptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref PyMySQLLayerArn
+      Environment:
+        Variables:
+          HOST: !Ref DBHost
+          DATABASE: !Ref Database
+          USERNAME: !Ref Username
+          PASSWORD: !Ref Password
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /receipt/{id}
+            Method: delete
       Policies:
         - Version: "2012-10-17"
           Statement:
