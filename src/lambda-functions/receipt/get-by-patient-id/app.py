@@ -69,6 +69,7 @@ def lambda_handler(event, context):
                 r.created_date AS r_created_date,
                 r.patient_id AS r_patient_id,
                 r.payment_type AS r_payment_type,
+                r.status AS r_status,
                 p.paid_material_usage_id AS p_paid_material_usage_id,
                 p.material_usage_id AS p_material_usage_id,
                 p.total_paid AS p_total_paid,
@@ -99,6 +100,7 @@ def lambda_handler(event, context):
             r_created_date = record["r_created_date"]
             r_patient_id = record["r_patient_id"]
             r_payment_type = record["r_payment_type"]
+            r_status = record["r_status"]
             detail = {k: v for k, v in record.items() if not k.startswith("r_")}
 
             existing_record = next(
@@ -110,6 +112,7 @@ def lambda_handler(event, context):
                                "r_created_date": r_created_date,
                                "r_patient_id": r_patient_id,
                                "r_payment_type": r_payment_type,
+                               "r_status": r_status,
                                "detail": [detail]})
 
         response = create_response(200, '', result)

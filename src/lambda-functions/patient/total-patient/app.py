@@ -2,10 +2,19 @@ import json
 import pymysql
 import os
 import datetime
+import decimal
 
 
-def get_value_or_none(data, key):
-    return data[key] if key in data else None
+def transform_row(row):
+    transformed_row = []
+    for value in row:
+        if isinstance(value, datetime.date):
+            transformed_row.append(str(value))
+        elif isinstance(value, decimal.Decimal):
+            transformed_row.append(float(value))
+        else:
+            transformed_row.append(value)
+    return tuple(transformed_row)
 
 
 def get_mysql_error_message(error_code):
@@ -46,38 +55,22 @@ def lambda_handler(event, context):
     conn = None
     cursor = None
     response = create_response(500, 'Internal error', None)
-
-    if event['httpMethod'] != 'PUT' or not event.get('body') or not event.get('pathParameters') or 'id' not in event['pathParameters']:
+    if (event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
 
     try:
-        id = event['pathParameters']['id']
-        data = json.loads(event['body'])
-
-        required_fields = ['payment_type', 'status']
-
-        missing_fields = [
-            field for field in required_fields if not data.get(field)]
-
-        if missing_fields:
-            return create_response(400, f"Fields {', '.join(missing_fields)} are required")
-        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
-            'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
+                               passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
-            UPDATE `receipt` SET `payment_type`= %s, `status` = %s WHERE `receipt_id` = %s
-            """
-        cursor.execute(query, (get_value_or_none(data, 'payment_type'),
-                               get_value_or_none(data, 'status'),
-                               id))
-
-        conn.commit()
-        if cursor.rowcount == 0:
-            response = create_response(
-                status_code=404, message='receipt not found or not change')
-        else:
-            response = create_response(
-                status_code=200, message='receipt updated successfully')
+            SELECT COUNT(1) AS `total` FROM `patient` WHERE `active` = 1
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        column_names = [column[0] for column in cursor.description]
+        transformed_rows = [
+            dict(zip(column_names, transform_row(row))) for row in rows]
+        response = create_response(200, '', transformed_rows)
     except pymysql.MySQLError as e:
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])

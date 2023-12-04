@@ -100,7 +100,8 @@ Resources:
               method.response.header.Access-Control-Allow-Credentials: "'true'"
               method.response.header.Access-Control-Allow-Methods: "'POST'"
             ResponseTemplates:
-              application/json: "{}"
+              application/json: |
+                {"appointment_id": "$context.requestId"}
           - StatusCode: "400"
             SelectionPattern: '4\d{2}'
             ResponseTemplates:
