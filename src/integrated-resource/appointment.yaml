@@ -44,6 +44,27 @@ Resources:
       ParentId: !Ref StartTimeResource
       PathPart: "{end-time}"
 
+  AppointmentPatientResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref AppointmentResource
+      PathPart: "appointment"
+
+  StartTimePatientResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref AppointmentPatientResource
+      PathPart: "{start-time}"
+
+  EndTimePatientResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref StartTimePatientResource
+      PathPart: "{end-time}"
+
   AppointmentMethodPost:
     Type: "AWS::ApiGateway::Method"
     Properties:
@@ -338,6 +359,276 @@ Resources:
       HttpMethod: DELETE
       AuthorizationType: CUSTOM
       AuthorizerId: !Ref LambdaAuthorizer
+      RequestParameters:
+        method.request.path.start-time: true
+        method.request.path.end-time: true
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.start-time: method.request.path.start-time
+          integration.request.path.end-time: method.request.path.end-time
+        RequestTemplates:
+          application/json:
+            "Fn::Sub":
+              - |
+                {
+                  "TableName":"${TableName}",
+                  "Key": {
+                    "type": {"S":"a"},
+                    "epoch": {"N":"$util.urlDecode($input.params('start-time'))"}
+                  },
+                  "UpdateExpression": "REMOVE #field_name",
+                  "ExpressionAttributeNames": {
+                    "#field_name": "$util.urlDecode($input.params('end-time'))"
+                  }
+                }
+              - TableName: !Ref TableName
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'POST'"
+            ResponseTemplates:
+              application/json: "{}"
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
+
+  AppointmentPatientMethodGet:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref EndTimePatientResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.start-time: true
+        method.request.path.end-time: true
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.start-time: method.request.path.start-time
+          integration.request.path.end-time: method.request.path.end-time
+        RequestTemplates:
+          application/json:
+            "Fn::Sub": '{"TableName":"${TableName}","KeyConditionExpression":"#type_alias=:v1 AND epoch BETWEEN :startTime AND :endTime","ExpressionAttributeValues":{":v1":{"S":"a"},":startTime":{"N":"$util.urlDecode($input.params(''start-time''))"},":endTime":{"N":"$util.urlDecode($input.params(''end-time''))"}},"ExpressionAttributeNames":{"#type_alias":"type"}}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'GET'"
+            ResponseTemplates:
+              application/json: |
+                #set($inputRoot = $input.path('$'))[#foreach($item in $inputRoot.Items)#set($grouped = {})#set($counts = {})#foreach($key in $item.keySet())#if($key != "type" && $key != "epoch")#if(!$grouped.containsKey($util.escapeJavaScript($item[$key].M.procedure_id.S)))#set($grouped[$util.escapeJavaScript($item[$key].M.procedure_id.S)] = [])#set($counts[$util.escapeJavaScript($item[$key].M.procedure_id.S)] = 0)#end#set($appointment = {"appointment_id": "$key","patient_id": "$util.escapeJavaScript($item[$key].M.patient_id.S)","patient_name":"$util.escapeJavaScript($item[$key].M.patient_name.S)","phone_number": "$util.escapeJavaScript($item[$key].M.phone_number.S)","procedure_id": "$util.escapeJavaScript($item[$key].M.procedure_id.S)","procedure_name": "$util.escapeJavaScript($item[$key].M.procedure_name.S)","reason": "$util.escapeJavaScript($item[$key].M.reason.S)","doctor": "$util.escapeJavaScript($item[$key].M.doctor.S)","time": $item[$key].M.time.N,"patient_created_date":"$util.escapeJavaScript($item[$key].M.patient_created_date.S)","status": $item[$key].M.status.N,"attribute_name": "$util.escapeJavaScript($item[$key].M.attribute_name.S)","epoch": $item[$key].M.epoch.N,"migrated": $item[$key].M.migrated.BOOL})#set($discard = $grouped[$util.escapeJavaScript($item[$key].M.procedure_id.S)].add($appointment))#set($counts[$util.escapeJavaScript($item[$key].M.procedure_id.S)] = $counts[$util.escapeJavaScript($item[$key].M.procedure_id.S)] + 1)#end#end{"date": $item.epoch.N,"appointments": [#foreach($procKey in $grouped.keySet()){"procedure_id": "$procKey","count": $counts[$procKey],"details": $grouped[$procKey]}#if($foreach.hasNext),#end#end]}#if($foreach.hasNext),#end#end]
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
+
+  AppointmentPatientMethodPut:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref StartTimePatientResource
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.start-time: true
+      Integration:
+        Type: AWS
+        Credentials: !Ref APIGatewayIntegreatedRoleArn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/TransactWriteItems"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.start-time: method.request.path.start-time
+        RequestTemplates:
+          application/json:
+            "Fn::Sub":
+              - |
+                #set($requestId = $context.requestId)
+                #set($epoch = $input.path('$.epoch'))
+                #set($newEpoch = $input.path('$.new_epoch'))
+                #set($attributeName = $input.params('start-time'))
+                #if($epoch == $newEpoch)
+                {
+                  "TransactItems": [
+                    {
+                      "Update": {
+                        "TableName": "${TableName}",
+                        "Key": {
+                          "type": {"S":"a"},
+                          "epoch": {"N":"$epoch"}
+                        },
+                        "UpdateExpression": "SET #requestIdField = :newValues",
+                        "ExpressionAttributeNames": {
+                          "#requestIdField": "$attributeName"
+                        },
+                        "ExpressionAttributeValues": {
+                          ":newValues": {
+                            "M": {
+                              "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
+                              "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
+                              "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
+                              "procedure_id": {"S": "$input.path('$.appointment.procedure_id')"},
+                              "procedure_name": {"S": "$input.path('$.appointment.procedure_name')"},
+                              "reason": {"S": "$input.path('$.appointment.reason')"},
+                              "doctor": {"S": "$input.path('$.appointment.doctor')"},
+                              "time": {"N": "$input.path('$.appointment.time')"},
+                              "patient_created_date": {"S": "$input.path('$.appointment.patient_created_date')"},
+                              "status": {"N": "$input.path('$.appointment.status')"},
+                              "migrated": {"BOOL": false}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+                #else
+                {
+                  "TransactItems": [
+                    {
+                      "Update": {
+                        "TableName": "${TableName}",
+                        "Key": {
+                          "type": {"S":"a"},
+                          "epoch": {"N":"$newEpoch"}
+                        },
+                        "UpdateExpression": "SET #requestIdField = :newValues",
+                        "ExpressionAttributeNames": {
+                          "#requestIdField": "$requestId"
+                        },
+                        "ExpressionAttributeValues": {
+                          ":newValues": {
+                            "M": {
+                              "patient_id": {"S": "$input.path('$.appointment.patient_id')"},
+                              "patient_name": {"S": "$input.path('$.appointment.patient_name')"},
+                              "phone_number": {"S": "$input.path('$.appointment.phone_number')"},
+                              "procedure_id": {"S": "$input.path('$.appointment.procedure_id')"},
+                              "procedure_name": {"S": "$input.path('$.appointment.procedure_name')"},
+                              "reason": {"S": "$input.path('$.appointment.reason')"},
+                              "doctor": {"S": "$input.path('$.appointment.doctor')"},
+                              "time": {"N": "$input.path('$.appointment.time')"},
+                              "patient_created_date": {"S": "$input.path('$.appointment.patient_created_date')"},
+                              "status": {"N": "$input.path('$.appointment.status')"},
+                              "migrated": {"BOOL": false}
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Update": {
+                        "TableName": "${TableName}",
+                        "Key": {
+                          "type": {"S":"a"},
+                          "epoch": {"N":"$epoch"}
+                        },
+                        "UpdateExpression": "SET #requestIdField = :newValues",
+                        "ExpressionAttributeNames": {
+                          "#requestIdField": "$attributeName"
+                        },
+                        "ExpressionAttributeValues": {
+                          ":newValues": {
+                            "M": {
+                              "attribute_name": {"S": "$requestId"},
+                              "epoch": {"N": "$newEpoch"},
+                              "migrated": {"BOOL": true}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+                #end
+              - TableName: !Ref TableName
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Access-Control-Allow-Headers, Access-Control-Allow-Methods, Accept, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+              method.response.header.Access-Control-Allow-Methods: "'PUT'"
+            ResponseTemplates:
+              application/json: "{}"
+          - StatusCode: "400"
+            SelectionPattern: '4\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Bad request"}'
+          - StatusCode: "500"
+            SelectionPattern: '5\d{2}'
+            ResponseTemplates:
+              application/json: '{"error":"Internal server error"}'
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Methods: true
+        - StatusCode: "400"
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: "500"
+          ResponseModels:
+            application/json: "Error"
+
+  AppointmentPatientMethodDeleteNew:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref EndTimePatientResource
+      HttpMethod: DELETE
+      AuthorizationType: NONE
       RequestParameters:
         method.request.path.start-time: true
         method.request.path.end-time: true

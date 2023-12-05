@@ -308,6 +308,24 @@ Resources:
         PyMySQLLayerArn: !Ref PyMySQLLayerArn
         LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
 
+  XRayImageFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
+    Properties:
+      TemplateURL: x-ray-image/x-ray-image.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        DBHost: !Ref DBHost
+        Database: !Ref Database
+        Username: !Ref Username
+        Password: !Ref Password
+        PyMySQLLayerArn: !Ref PyMySQLLayerArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
+        BucketImageName: !Ref BucketImageName
+        Region: !Ref Region
+
   ZNSFunctionStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: AuthFunctionsStack
