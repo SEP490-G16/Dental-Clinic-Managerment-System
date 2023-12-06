@@ -66,10 +66,10 @@ def lambda_handler(event, context):
     image_arr = data.get('image_arr')
 
     for item in image_arr:
-        if 'x-ray' not in item or not item['x-ray'].strip():
-            return create_response(400, "Field 'x-ray' is required")
+        if 'image_data' not in item or not item['image_data'].strip():
+            return create_response(400, "Field 'image_data' is required")
 
-    query = "INSERT INTO `x_ray_image`(`patient_id`, `url`, `description`) VALUES \n"
+    query = "INSERT INTO `x_ray_image`(`patient_id`, `url`, `description`) VALUES  "
     query_data = ()
 
     count = 0
@@ -86,9 +86,9 @@ def lambda_handler(event, context):
                 image_url = "https://{}.s3.{}.amazonaws.com/{}".format(
                     os.environ.get('BUCKET_IMAGE_NAME'), os.environ.get('REGION'), image_url_s3)
             except Exception as e:
-                print(str(e))
+                return create_response(500, str(e), None)
         else:
-            image_url = item['image_url']
+            image_url = item['image_data']
         query += "(%s, %s, %s),"
         query_data += (get_value_or_none(data, 'patient_id'),
                        image_url,
@@ -98,6 +98,7 @@ def lambda_handler(event, context):
             'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         cursor.execute(query[:-1], query_data)
+        conn.commit()
         response = create_response(
             201, message='X-ray image created successfully')
     except pymysql.MySQLError as e:
