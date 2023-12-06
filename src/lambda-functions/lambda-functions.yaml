@@ -326,7 +326,7 @@ Resources:
         BucketImageName: !Ref BucketImageName
         Region: !Ref Region
 
-  PrivateAccessFunctionStack:
+  PrivateAccess1FunctionStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: AuthFunctionsStack
     Properties:
