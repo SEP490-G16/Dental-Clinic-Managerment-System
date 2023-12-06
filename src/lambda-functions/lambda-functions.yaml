@@ -326,6 +326,18 @@ Resources:
         BucketImageName: !Ref BucketImageName
         Region: !Ref Region
 
+  PrivateAccessFunctionStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AuthFunctionsStack
+    Properties:
+      TemplateURL: private-access/private-access.yaml
+      Parameters:
+        StageName: !Ref StageName
+        AppName: !Ref AppName
+        UserPoolArn: !Ref UserPoolArn
+        LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
+        UserPoolId: !Ref UserPoolId
+
   ZNSFunctionStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: AuthFunctionsStack
