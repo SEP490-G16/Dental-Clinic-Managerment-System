@@ -36,8 +36,6 @@ Resources:
       CodeUri: otp-sender
       Handler: app.lambda_handler
       Runtime: python3.8
-      Layers:
-        - !Ref PyMySQLLayerArn
       Environment:
         Variables:
           DYNAMODB: !Sub "${StageName}-${AppName}-db"
@@ -65,8 +63,6 @@ Resources:
       CodeUri: set-new-password
       Handler: app.lambda_handler
       Runtime: python3.8
-      Layers:
-        - !Ref PyMySQLLayerArn
       Environment:
         Variables:
           DYNAMODB: !Sub "${StageName}-${AppName}-db"
