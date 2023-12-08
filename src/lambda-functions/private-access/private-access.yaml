@@ -13,6 +13,8 @@ Parameters:
     Type: String
   UserPoolId:
     Type: String
+  UserPoolClientId:
+    Type: String
 
 Resources:
   MyApi:
@@ -67,12 +69,39 @@ Resources:
         Variables:
           DYNAMODB: !Sub "${StageName}-${AppName}-db"
           USER_POOL_ID: !Ref UserPoolId
+          CLIENT_ID: !Ref UserPoolClientId
       Events:
         CreateActivities:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
             Path: /private-access
+            Method: post
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "rds:*"
+              Resource: "*"
+
+  GetAccessTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-access-token
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          DYNAMODB: !Sub "${StageName}-${AppName}-db"
+          USER_POOL_ID: !Ref UserPoolId
+          CLIENT_ID: !Ref UserPoolClientId
+      Events:
+        CreateActivities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /private-access/get-access-token
             Method: post
       Policies:
         - Version: "2012-10-17"

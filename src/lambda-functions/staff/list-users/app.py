@@ -40,7 +40,8 @@ def lambda_handler(event, context):
 
     try:
         response = cognito_client.list_users(UserPoolId=user_pool_id)
-        users = response['Users']
+        users = [user for user in response['Users']
+                 if user["Username"] != "private-access"]
 
         return create_response(200, users)
     except ClientError as e:

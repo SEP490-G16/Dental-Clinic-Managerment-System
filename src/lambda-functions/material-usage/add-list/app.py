@@ -3,15 +3,17 @@ import pymysql
 import os
 import datetime
 
+
 def get_value_or_none(data, key):
     return data[key] if key in data else None
+
 
 def get_mysql_error_message(error_code):
     error_messages = {
         1045: "Access denied for user",
         1049: "Unknown database",
         1146: "Table doesn't exist",
-        1452: "Foreign key constraint fails", 
+        1452: "Foreign key constraint fails",
         1062: "Duplicate entry",
         1054: "Unknown column in field list"
     }
@@ -39,6 +41,7 @@ def create_response(status_code, message, data=None, exception_type=None):
         'body': json.dumps(response_body, ensure_ascii=False)
     }
 
+
 def lambda_handler(event, context):
     conn = None
     cursor = None
@@ -50,30 +53,35 @@ def lambda_handler(event, context):
 
     missing_fields_list = []
 
-    required_fields = ['treatment_course_id', 'examination_id', 'quantity', 'price']
+    required_fields = ['treatment_course_id', 'quantity', 'price']
 
     for item in data:
         if (get_value_or_none(item, 'material_warehouse_id') is not None) == (get_value_or_none(item, 'medical_procedure_id') is not None):
             return create_response(400, "Your request must include either 'material_warehouse_id' or 'medical_procedure_id', but not both")
-    
+
     for item in data:
-        missing_fields = [field for field in required_fields if field not in item]
+        missing_fields = [
+            field for field in required_fields if field not in item]
         if missing_fields:
-            missing_fields_list.append({'examination_id': item.get('examination_id'), 'missing_fields': missing_fields})
-    
+            missing_fields_list.append({'treatment_course_id': item.get(
+                'treatment_course_id'), 'missing_fields': missing_fields})
+
     if missing_fields_list:
-        missing_materials = ', '.join([f"Examination ID: {item['examination_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
+        missing_materials = ', '.join(
+            [f"Examination ID: {item['treatment_course_id']} is missing fields: {', '.join(item['missing_fields'])}" for item in missing_fields_list])
         return create_response(400, f"Missing fields for the following materials: {missing_materials}")
 
     try:
-        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+        conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
+            'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         conn.autocommit(False)
         cursor = conn.cursor()
         query = """INSERT INTO `material_usage` (`material_warehouse_id`, `medical_procedure_id`, `treatment_course_id`, `examination_id`, `quantity`, `price`, `total_paid`, `description`) VALUES """
         query_data = ()
         for item in data:
             query += "(%s, %s, %s, %s, %s, %s, %s, %s),"
-            query_data += (get_value_or_none(item, 'material_warehouse_id'), get_value_or_none(item, 'medical_procedure_id'), get_value_or_none(item, 'treatment_course_id'), get_value_or_none(item, 'examination_id'), get_value_or_none(item, 'quantity'), get_value_or_none(item, 'price'), get_value_or_none(item, 'total_paid'), get_value_or_none(item, 'description'))
+            query_data += (get_value_or_none(item, 'material_warehouse_id'), get_value_or_none(item, 'medical_procedure_id'), get_value_or_none(item, 'treatment_course_id'), get_value_or_none(
+                item, 'examination_id'), get_value_or_none(item, 'quantity'), get_value_or_none(item, 'price'), get_value_or_none(item, 'total_paid'), get_value_or_none(item, 'description'))
         cursor.execute(query[:-1], query_data)
         conn.commit()
         response = create_response(201, message='Invoice created successfully')
@@ -81,12 +89,14 @@ def lambda_handler(event, context):
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
-        response = create_response(status_code, error_message, None, str(e.__class__.__name__))
+        response = create_response(
+            status_code, error_message, None, str(e.__class__.__name__))
         if conn:
             conn.rollback()
     except Exception as e:
         print("Error:", e)
-        response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        response = create_response(
+            500, 'Internal error', None, str(e.__class__.__name__))
         if conn:
             conn.rollback()
     finally:

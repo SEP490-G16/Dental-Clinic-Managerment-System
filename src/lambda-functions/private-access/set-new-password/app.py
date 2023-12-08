@@ -33,7 +33,7 @@ def create_response(status_code, message, data=None, exception_type=None):
 def lambda_handler(event, context):
     try:
         data = json.loads(event['body'])
-        required_fields = ['otp', 'new_password']
+        required_fields = ['otp', 'new_access_code']
 
         missing_fields = [
             field for field in required_fields if not data.get(field)]
@@ -55,15 +55,35 @@ def lambda_handler(event, context):
         if private_access['Item']['exp'] <= current_time_epoch:
             return create_response(400, "Token has expired!")
 
-        res = json.loads(cognito.admin_set_user_password(
+        res = cognito.admin_set_user_password(
             UserPoolId=os.environ['USER_POOL_ID'],
-            Username='letan',
-            Password=data['new_password'],
+            Username='private-access',
+            Password=data['new_access_code'],
             Permanent=True
-        ))
+        )
+        exp = current_time_epoch + 3600
+        response = cognito.admin_update_user_attributes(
+            UserPoolId=os.environ['USER_POOL_ID'],
+            Username='private-access',
+            UserAttributes=[
+                {
+                    'Name': 'custom:DOB',
+                    'Value': str(exp)
+                }
+            ]
+        )
 
-        if res['ResponseMetadata']['HTTPStatusCode'] == 200:
-            return create_response(200, 'Change password successful')
+        response = cognito.admin_initiate_auth(
+            UserPoolId=os.environ['USER_POOL_ID'],
+            ClientId=os.environ['CLIENT_ID'],
+            AuthFlow='ADMIN_NO_SRP_AUTH',
+            AuthParameters={
+                'USERNAME': 'private-access',
+                'PASSWORD': data['new_access_code']
+            }
+        )
+        if int(res['ResponseMetadata']['HTTPStatusCode']) == 200:
+            return create_response(200, 'Change access code successful', response['AuthenticationResult']['AccessToken'])
     except Exception as e:
         return create_response(500, 'Internal error', None, str(e.__class__.__name__))
     return create_response(500, message='Internal error')

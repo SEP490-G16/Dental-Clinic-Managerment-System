@@ -97,12 +97,13 @@ def create_response(status_code, message, data=None, exception_type=None):
 
 def lambda_handler(event, context):
     id = event['pathParameters']['id']
-    mail = os.environ['MAIL_1'] if id == int(1) else os.environ['MAIL_2']
+    mail = os.environ['MAIL_1'] if int(id) == int(1) else os.environ['MAIL_2']
     try:
         token = gen_token()
-        res = json.loads(send_email(token, mail))
+        res = send_email(token, mail)
+        # return create_response(300, '', (token, mail))
         if res['ResponseMetadata']['HTTPStatusCode'] == 200:
             return create_response(200, 'OTP sent successful')
-    except Exception:
-        return str(Exception)
+    except Exception as e:
+        return create_response(500, 'Internal error', None, str(e.__class__.__name__))
     return create_response(500, 'OTP sent fail')

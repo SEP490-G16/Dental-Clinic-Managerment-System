@@ -34,3 +34,6 @@ Outputs:
 
   CognitoUserPoolId:
     Value: !GetAtt CognitoStack.Outputs.UserPoolId
+
+  UserPoolClientId:
+    Value: !GetAtt CognitoStack.Outputs.UserPoolClientId

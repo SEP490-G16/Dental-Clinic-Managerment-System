@@ -11,6 +11,8 @@ Parameters:
     Type: String
   UserPoolId:
     Type: String
+  UserPoolClientId:
+    Type: String
   DBHost:
     Type: String
     Description: "Database host address"
@@ -337,6 +339,7 @@ Resources:
         UserPoolArn: !Ref UserPoolArn
         LambdaAuthorizerFunctionArn: !GetAtt AuthFunctionsStack.Outputs.LambdaAuthorizerFunctionArn
         UserPoolId: !Ref UserPoolId
+        UserPoolClientId: !Ref UserPoolClientId
 
   ZNSFunctionStack:
     Type: AWS::CloudFormation::Stack

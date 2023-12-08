@@ -4,6 +4,7 @@ import os
 import datetime
 from collections import defaultdict
 
+
 def transform_row(row):
     transformed_row = []
     for value in row:
@@ -19,7 +20,7 @@ def get_mysql_error_message(error_code):
         1045: "Access denied for user",
         1049: "Unknown database",
         1146: "Table doesn't exist",
-        1452: "Foreign key constraint fails", 
+        1452: "Foreign key constraint fails",
         1062: "Duplicate entry",
         1054: "Unknown column in field list"
     }
@@ -57,10 +58,10 @@ def lambda_handler(event, context):
             not event['pathParameters']['id'] or
             event['httpMethod'] != 'GET'):
         return create_response(400, 'Bad Request')
-    
+
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
-                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+                               passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
           SELECT 
@@ -100,16 +101,17 @@ def lambda_handler(event, context):
           INNER JOIN 
               patient p ON tc.patient_id = p.patient_id
           WHERE 
-              mu.status != 0 AND
-              tc.status = 1 AND
-              p.active = 1 AND
               p.patient_id = %s;
         """
+        #           mu.status != 0 AND
+        #   tc.status = 1 AND
+        #   p.active = 1 AND
         cursor.execute(query, (event['pathParameters']['id']))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
 
-        grouped_data = defaultdict(lambda: {'mu_data': [], 'tc_data': None, 'p_data': None})
+        grouped_data = defaultdict(
+            lambda: {'mu_data': [], 'tc_data': None, 'p_data': None})
         for row in rows:
             transformed_row = transform_row(row)
             row_dict = dict(zip(column_names, transformed_row))
@@ -118,11 +120,14 @@ def lambda_handler(event, context):
             key = row_dict['mu_created_date']
 
             # Nhóm dữ liệu
-            grouped_data[key]['mu_data'].append({k: v for k, v in row_dict.items() if k.startswith('mu_')})
+            grouped_data[key]['mu_data'].append(
+                {k: v for k, v in row_dict.items() if k.startswith('mu_')})
             if 'tc_data' not in grouped_data[key] or grouped_data[key]['tc_data'] is None:
-                grouped_data[key]['tc_data'] = {k: v for k, v in row_dict.items() if k.startswith('tc_')}
+                grouped_data[key]['tc_data'] = {
+                    k: v for k, v in row_dict.items() if k.startswith('tc_')}
             if 'p_data' not in grouped_data[key] or grouped_data[key]['p_data'] is None:
-                grouped_data[key]['p_data'] = {k: v for k, v in row_dict.items() if k.startswith('p_')}
+                grouped_data[key]['p_data'] = {
+                    k: v for k, v in row_dict.items() if k.startswith('p_')}
 
         transformed_rows = list(grouped_data.values())
 
@@ -131,10 +136,12 @@ def lambda_handler(event, context):
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
-        response = create_response(status_code, error_message, None, str(e.__class__.__name__))
+        response = create_response(
+            status_code, error_message, None, str(e.__class__.__name__))
     except Exception as e:
         print("Error:", e)
-        response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        response = create_response(
+            500, 'Internal error', None, str(e.__class__.__name__))
     finally:
         if cursor:
             cursor.close()
