@@ -1,7 +1,6 @@
 import boto3
 import random
 from botocore.exceptions import ClientError
-import datetime
 import os
 import json
 
@@ -10,15 +9,14 @@ table = dynamodb.Table(os.environ['DYNAMODB'])
 client = boto3.client('ses', region_name='ap-southeast-1')
 
 
-def gen_token():
+def gen_token(current_time_epoch):
     token = random.randint(100000, 999999)
-    current_time_epoch = int(datetime.datetime.now().timestamp())
     table.put_item(
         Item={
             'type': 'private-access',
             'epoch': 0,
             'otp': token,
-            'exp': current_time_epoch + 150
+            'exp': current_time_epoch + 330
         }
     )
     return token
@@ -97,9 +95,11 @@ def create_response(status_code, message, data=None, exception_type=None):
 
 def lambda_handler(event, context):
     id = event['pathParameters']['id']
+    current_time_epoch = int(
+        event['requestContext']['requestTimeEpoch']) / 1000
     mail = os.environ['MAIL_1'] if int(id) == int(1) else os.environ['MAIL_2']
     try:
-        token = gen_token()
+        token = gen_token(int(current_time_epoch))
         res = send_email(token, mail)
         # return create_response(300, '', (token, mail))
         if res['ResponseMetadata']['HTTPStatusCode'] == 200:

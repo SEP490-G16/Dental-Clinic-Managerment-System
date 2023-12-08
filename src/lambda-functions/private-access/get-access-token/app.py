@@ -1,7 +1,6 @@
 import boto3
 import random
 from botocore.exceptions import ClientError
-import datetime
 import os
 import json
 
@@ -33,16 +32,28 @@ def create_response(status_code, message, data=None, exception_type=None):
 def lambda_handler(event, context):
     data = json.loads(event['body'])
     try:
+        exp = int(int(event['requestContext']
+                  ['requestTimeEpoch']) / 1000) + 3600
+        response = cognito.admin_update_user_attributes(
+            UserPoolId=os.environ['USER_POOL_ID'],
+            Username='private-access',
+            UserAttributes=[
+                {
+                    'Name': 'custom:DOB',
+                    'Value': str(exp)
+                }
+            ]
+        )
         response = cognito.admin_initiate_auth(
             UserPoolId=os.environ['USER_POOL_ID'],
-            ClientId='3pngqk8top46uiogeth8ke323v',
+            ClientId=os.environ['CLIENT_ID'],
             AuthFlow='ADMIN_NO_SRP_AUTH',
             AuthParameters={
                 'USERNAME': 'private-access',
                 'PASSWORD': data['access_code']
             }
         )
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+        if int(response['ResponseMetadata']['HTTPStatusCode']) == 200:
             return create_response(200, '', response['AuthenticationResult']['AccessToken'])
     except Exception as e:
         return create_response(500, 'Internal error', None, str(e.__class__.__name__))

@@ -1,7 +1,6 @@
 import json
 import os
 import boto3
-import datetime
 
 dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-1')
 table = dynamodb.Table(os.environ['DYNAMODB'])
@@ -50,7 +49,8 @@ def lambda_handler(event, context):
 
         if private_access['Item']['otp'] != data['otp']:
             return create_response(400, "Token invalid!")
-        current_time_epoch = int(datetime.datetime.now().timestamp())
+        current_time_epoch = int(
+            int(event['requestContext']['requestTimeEpoch']) / 1000)
 
         if private_access['Item']['exp'] <= current_time_epoch:
             return create_response(400, "Token has expired!")
