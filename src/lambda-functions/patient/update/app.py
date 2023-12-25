@@ -1,6 +1,7 @@
 import json
 import pymysql
 import os
+from datetime import datetime
 
 conn = pymysql.connect(host=os.environ.get('HOST'),
                        user=os.environ.get('USERNAME'),
@@ -37,13 +38,14 @@ def lambda_handler(event, context):
 
         query = """
         UPDATE `patient` 
-        SET patient_name=%s, date_of_birth=FROM_UNIXTIME(%s), gender=%s, phone_number=%s, full_medical_history=%s, 
-            dental_medical_history=%s, email=%s, address=%s, description=%s, profile_image=%s
+        SET patient_name=%s, date_of_birth=%s, gender=%s, phone_number=%s, full_medical_history=%s, 
+            dental_medical_history=%s, email=%s, address=%s, description=%s, profile_image=%s, sub_phone_number=%s
         WHERE patient_id=%s;
         """
-
+        date_of_birth = datetime.fromtimestamp(
+            data.get('date_of_birth')).strftime('%Y-%m-%d')
         cursor.execute(query, (data.get('patient_name'),
-                               get_value_or_none(data, 'date_of_birth'),
+                               date_of_birth,
                                get_value_or_none(data, 'gender'),
                                data.get('phone_number'),
                                get_value_or_none(data, 'full_medical_history'),
@@ -53,6 +55,7 @@ def lambda_handler(event, context):
                                get_value_or_none(data, 'address'),
                                get_value_or_none(data, 'description'),
                                get_value_or_none(data, 'profile_image'),
+                               get_value_or_none(data, 'sub_phone_number'),
                                patient_id))
 
         conn.commit()

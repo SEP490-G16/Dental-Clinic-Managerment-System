@@ -13,12 +13,13 @@ def transform_row(row):
             transformed_row.append(value)
     return tuple(transformed_row)
 
+
 def get_mysql_error_message(error_code):
     error_messages = {
         1045: "Access denied for user",
         1049: "Unknown database",
         1146: "Table doesn't exist",
-        1452: "Foreign key constraint fails", 
+        1452: "Foreign key constraint fails",
         1062: "Duplicate entry",
         1054: "Unknown column in field list"
     }
@@ -46,8 +47,10 @@ def create_response(status_code, message, data=None, exception_type=None):
         'body': json.dumps(response_body, ensure_ascii=False)
     }
 
+
 def lambda_handler(event, context):
-    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+    conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get(
+        'USERNAME'), passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
     cursor = conn.cursor()
     try:
         query = """
@@ -58,10 +61,28 @@ def lambda_handler(event, context):
                 mp.medical_procedure_id AS mp_id,
                 mp.name AS mp_name,
                 mp.price AS mp_price,
-                mp.description AS mp_description
+                mp.description AS mp_description,
+                mp.active AS mp_active
             FROM medical_procedure_group mg
-            LEFT JOIN medical_procedure mp ON mg.medical_procedure_group_id = mp.medical_procedure_group_id
-            WHERE (mp.active != 0 OR mp.active IS NULL) AND mg.active != 0;
+            INNER JOIN medical_procedure mp ON mg.medical_procedure_group_id = mp.medical_procedure_group_id
+            WHERE mg.active != 0 AND mp.active != 0
+            UNION
+            SELECT 
+                mg.medical_procedure_group_id AS mg_id,
+                mg.name AS mg_name,
+                mg.description AS mg_description,
+                NULL AS mp_id,
+                NULL AS mp_name,
+                NULL AS mp_price,
+                NULL AS mp_description,
+                NULL AS mp_active
+            FROM medical_procedure_group mg
+            WHERE mg.active != 0
+                AND mg.medical_procedure_group_id NOT IN (
+                    SELECT DISTINCT medical_procedure_group_id
+                    FROM medical_procedure
+                    WHERE (active != 0)
+                );
           """
         cursor.execute(query)
         rows = cursor.fetchall()

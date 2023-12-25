@@ -19,7 +19,7 @@ def get_mysql_error_message(error_code):
         1045: "Access denied for user",
         1049: "Unknown database",
         1146: "Table doesn't exist",
-        1452: "Foreign key constraint fails", 
+        1452: "Foreign key constraint fails",
         1062: "Duplicate entry",
         1054: "Unknown column in field list"
     }
@@ -51,7 +51,7 @@ def create_response(status_code, message, data=None, exception_type=None):
 def lambda_handler(event, context):
     # global conn, cursor
     conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
-                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+                           passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
     cursor = conn.cursor()
     if ('pathParameters' not in event or
             'name_prefix' not in event['pathParameters'] or
@@ -61,6 +61,7 @@ def lambda_handler(event, context):
         return create_response(400, 'Bad Request')
 
     name_prefix = event['pathParameters']['name_prefix']
+    name_prefix = name_prefix.replace('-', ' ')
     try:
         page_number = int(event['pathParameters']['paging'])
         offset = (page_number - 1) * 10

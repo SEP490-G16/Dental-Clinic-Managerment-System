@@ -68,6 +68,7 @@ def lambda_handler(event, context):
               mu.material_usage_id AS mu_material_usage_id,
               mu.material_warehouse_id AS mu_material_warehouse_id,
               mu.medical_procedure_id AS mu_medical_procedure_id,
+              mp.name AS mu_mpname,
               mu.examination_id AS mu_examination_id,
               mu.quantity AS mu_quantity,
               mu.price AS mu_price,
@@ -100,7 +101,10 @@ def lambda_handler(event, context):
               treatment_course tc ON mu.treatment_course_id = tc.treatment_course_id
           INNER JOIN 
               patient p ON tc.patient_id = p.patient_id
+          LEFT JOIN
+              medical_procedure mp ON mu.medical_procedure_id = mp.medical_procedure_id
           WHERE 
+              mu.status != 0 AND
               p.patient_id = %s;
         """
         #           mu.status != 0 AND

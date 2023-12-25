@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     try:
         data = json.loads(event['body'])
 
-        required_fields = ['patient_id', 'name']
+        required_fields = ['patient_id']
 
         missing_fields = [
             field for field in required_fields if not data.get(field)]
@@ -70,7 +70,7 @@ def lambda_handler(event, context):
 
         cursor.execute(query, (data.get('patient_id'),
                                get_value_or_none(data, 'description'),
-                               data.get('name'),
+                               get_value_or_none(data, 'name'),
                                get_value_or_none(data, 'chief_complaint'),
                                get_value_or_none(
                                    data, 'provisional_diagnosis'),

@@ -4,6 +4,7 @@ import os
 import datetime
 import decimal
 
+
 def transform_row(row):
     transformed_row = []
     for value in row:
@@ -21,7 +22,7 @@ def get_mysql_error_message(error_code):
         1045: "Access denied for user",
         1049: "Unknown database",
         1146: "Table doesn't exist",
-        1452: "Foreign key constraint fails", 
+        1452: "Foreign key constraint fails",
         1062: "Duplicate entry",
         1054: "Unknown column in field list"
     }
@@ -64,10 +65,10 @@ def lambda_handler(event, context):
         offset = (page_number - 1) * 10
     except ValueError:
         return create_response(400, 'Invalid paging value')
-    
+
     try:
         conn = pymysql.connect(host=os.environ.get('HOST'), user=os.environ.get('USERNAME'),
-                       passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
+                               passwd=os.environ.get('PASSWORD'), db=os.environ.get('DATABASE'))
         cursor = conn.cursor()
         query = """
             SELECT 
@@ -83,7 +84,7 @@ def lambda_handler(event, context):
                 m.unit AS m_unit
             FROM 
                 material_warehouse mw
-                INNER JOIN (
+                LEFT JOIN (
                     SELECT 
                     	material_id
                     FROM 
@@ -108,10 +109,12 @@ def lambda_handler(event, context):
         print("MySQL error:", e)
         error_message = get_mysql_error_message(e.args[0])
         status_code = 400 if e.args[0] in [1452, 1062, 1054] else 500
-        response = create_response(status_code, error_message, None, str(e.__class__.__name__))
+        response = create_response(
+            status_code, error_message, None, str(e.__class__.__name__))
     except Exception as e:
         print("Error:", e)
-        response = create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        response = create_response(
+            500, 'Internal error', None, str(e.__class__.__name__))
     finally:
         if cursor:
             cursor.close()

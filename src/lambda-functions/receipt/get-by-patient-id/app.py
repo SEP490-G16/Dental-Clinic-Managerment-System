@@ -86,7 +86,7 @@ def lambda_handler(event, context):
             LEFT JOIN material_warehouse mw ON mu.material_warehouse_id = mw.material_warehouse_id 
             LEFT JOIN medical_procedure mp ON mu.medical_procedure_id = mp.medical_procedure_id
             LEFT JOIN material m ON mw.material_id = m.material_id
-            WHERE r.patient_id = %s
+            WHERE r.status != 0 AND r.patient_id = %s
         """
         cursor.execute(query, (event['pathParameters']['id']))
         rows = cursor.fetchall()

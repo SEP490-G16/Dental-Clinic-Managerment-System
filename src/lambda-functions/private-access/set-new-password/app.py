@@ -48,12 +48,12 @@ def lambda_handler(event, context):
         )
 
         if private_access['Item']['otp'] != data['otp']:
-            return create_response(400, "Token invalid!")
+            return create_response(400, "OTP invalid!")
         current_time_epoch = int(
             int(event['requestContext']['requestTimeEpoch']) / 1000)
 
         if private_access['Item']['exp'] <= current_time_epoch:
-            return create_response(400, "Token has expired!")
+            return create_response(400, "OTP has expired!")
 
         res = cognito.admin_set_user_password(
             UserPoolId=os.environ['USER_POOL_ID'],

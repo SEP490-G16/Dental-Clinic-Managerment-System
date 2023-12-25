@@ -1,7 +1,7 @@
 import json
 import pymysql
 import os
-import datetime
+from datetime import datetime
 
 
 def get_value_or_none(data, key):
@@ -65,13 +65,15 @@ def lambda_handler(event, context):
             return create_response(400, f"Fields {', '.join(missing_fields)} are required")
 
         query = """INSERT INTO `patient` (`patient_name`, `date_of_birth`, `gender`, `phone_number`, `full_medical_history`, 
-                `dental_medical_history`, `email`, `address`, `description`, `profile_image`)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+                `dental_medical_history`, `email`, `address`, `description`, `profile_image`, `sub_phone_number`)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
 
         des = "@@isnew##_" if get_value_or_none(
             data, 'description') is None else "@@isnew##_" + get_value_or_none(data, 'description')
+        date_of_birth = datetime.fromtimestamp(
+            data.get('date_of_birth')).strftime('%Y-%m-%d')
         cursor.execute(query, (data.get('patient_name'),
-                               get_value_or_none(data, 'date_of_birth'),
+                               date_of_birth,
                                get_value_or_none(data, 'gender'),
                                data.get('phone_number'),
                                get_value_or_none(data, 'full_medical_history'),
@@ -80,7 +82,8 @@ def lambda_handler(event, context):
                                get_value_or_none(data, 'email'),
                                get_value_or_none(data, 'address'),
                                des,
-                               get_value_or_none(data, 'profile_image')))
+                               get_value_or_none(data, 'profile_image'),
+                               get_value_or_none(data, 'sub_phone_number')))
 
         cursor.execute(
             "SELECT patient_id FROM patient ORDER BY patient_id DESC LIMIT 1;")
@@ -106,4 +109,4 @@ def lambda_handler(event, context):
         return create_response(status_code, error_message, None, str(e.__class__.__name__))
     except Exception as e:
         print("Error:", e)
-        return create_response(500, 'Internal error', None, str(e.__class__.__name__))
+        return create_response(500, 'Internal error', None, str(e))
